@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SmartEvents Municipal</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="manifest" href="/manifest.json" />
+</head>
+<body>
+
+  <!-- ========================= -->
+  <!-- NAVBAR -->
+  <!-- ========================= -->
+  <nav class="navbar">
+    <div class="logo">
+      <i class="fa-solid fa-calendar-check"></i>
+      SmartEvents
+    </div>
+    <ul class="nav-links">
+      <li><a href="#inicio">Inicio</a></li>
+      <li><a href="#eventos">Eventos</a></li>
+      <li><a href="#dashboard">Dashboard</a></li>
+      <li id="adminNavItem" style="display:none"><a href="#admin">Admin</a></li>
+      <li>
+        <button class="secondary-btn" id="darkModeBtn">
+          <i class="fa-solid fa-moon"></i>
+        </button>
+      </li>
+      <li id="authNavItem">
+        <button class="primary-btn" id="loginBtn">
+          <i class="fa-solid fa-user"></i> Ingresar
+        </button>
+      </li>
+      <li id="userNavItem" style="display:none">
+        <div class="user-menu">
+          <span id="userNameDisplay"></span>
+          <button class="secondary-btn" id="logoutBtn">
+            <i class="fa-solid fa-sign-out-alt"></i>
+          </button>
+        </div>
+      </li>
+    </ul>
+  </nav>
+
+  <!-- ========================= -->
+  <!-- HERO -->
+  <!-- ========================= -->
+  <section class="hero" id="inicio">
+    <div class="hero-content">
+      <h1>SmartEvents Municipal</h1>
+      <p>Plataforma inteligente de gestión de eventos municipales con análisis en tiempo real, mapas interactivos e integración con Google Calendar.</p>
+      <div class="hero-buttons">
+        <a href="#eventos" class="primary-btn">Ver eventos</a>
+        <a href="#dashboard" class="secondary-btn">Dashboard</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- DESTACADOS -->
+  <!-- ========================= -->
+  <section id="destacados">
+    <h2><i class="fa-solid fa-star"></i> ¿Por qué SmartEvents?</h2>
+    <div class="featured-container">
+      <div class="featured-card">
+        <i class="fa-solid fa-chart-line fa-2x" style="color:#38bdf8"></i>
+        <h3>Dashboard Inteligente</h3>
+        <p>Estadísticas dinámicas con análisis de IA y gráficos en tiempo real.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="featured-card">
+        <i class="fa-solid fa-map-location-dot fa-2x" style="color:#38bdf8"></i>
+        <h3>Mapa Interactivo</h3>
+        <p>Visualiza todos los eventos en un mapa con ubicación georreferenciada.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="featured-card">
+        <i class="fa-solid fa-bell fa-2x" style="color:#38bdf8"></i>
+        <h3>Notificaciones Push</h3>
+        <p>Recibe alertas cuando se abran inscripciones o cambie un evento.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="featured-card">
+        <i class="fa-solid fa-calendar-plus fa-2x" style="color:#38bdf8"></i>
+        <h3>Google Calendar</h3>
+        <p>Sincroniza eventos directamente con tu calendario de Google.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- MAPA -->
+  <!-- ========================= -->
+  <section id="mapa">
+    <h2><i class="fa-solid fa-map"></i> Mapa de Eventos</h2>
+    <div id="map" style="height:450px;border-radius:20px;overflow:hidden;"></div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- EVENTOS -->
+  <!-- ========================= -->
+  <section id="eventos">
+    <h2><i class="fa-solid fa-calendar"></i> Eventos Disponibles</h2>
+
+    <div class="filters-section">
+      <input type="text" id="searchInput" placeholder="Buscar eventos..." />
+      <select id="categoryFilter">
+        <option value="all">Todas las categorías</option>
+        <option value="Cultural">Cultural</option>
+        <option value="Deportivo">Deportivo</option>
+        <option value="Educativo">Educativo</option>
+        <option value="Social">Social</option>
+        <option value="Musical">Musical</option>
+      </select>
+      <select id="popularityFilter">
+        <option value="all">Todos</option>
+        <option value="high">Más populares</option>
+        <option value="low">Menos populares</option>
+      </select>
+    </div>
+
+    <div class="events-container" id="eventsContainer"></div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- DASHBOARD -->
+  <!-- ========================= -->
+  <section id="dashboard">
+    <h2><i class="fa-solid fa-chart-simple"></i> Dashboard</h2>
+
+    <div class="stats-grid">
+      <div class="stat-card">
+        <i class="fa-solid fa-calendar fa-2x" style="color:#38bdf8"></i>
+        <p id="totalEvents">0</p>
+        <small>Eventos totales</small>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-users fa-2x" style="color:#22c55e"></i>
+        <p id="totalParticipants">0</p>
+        <small>Participantes totales</small>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-trophy fa-2x" style="color:#facc15"></i>
+        <p id="popularEvent">-</p>
+        <small>Evento más popular</small>
+      </div>
+      <div class="stat-card">
+        <i class="fa-solid fa-tags fa-2x" style="color:#a855f7"></i>
+        <p id="popularCategory">-</p>
+        <small>Categoría destacada</small>
+      </div>
+    </div>
+
+    <div class="chart-container">
+      <canvas id="eventsChart"></canvas>
+    </div>
+
+    <div class="ai-analysis" id="aiAnalysis">
+      <h3><i class="fa-solid fa-robot"></i> Análisis con IA</h3>
+      <div id="analysisMessages"></div>
+      <button class="primary-btn" id="refreshAnalysisBtn" style="margin-top:15px;">
+        <i class="fa-solid fa-rotate"></i> Refrescar análisis
+      </button>
+    </div>
+
+    <div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
+      <button class="primary-btn" id="exportPdfBtn">
+        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+      </button>
+      <button class="secondary-btn" id="sendTestNotificationBtn">
+        <i class="fa-solid fa-bell"></i> Probar notificación
+      </button>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- ADMIN PANEL -->
+  <!-- ========================= -->
+  <section id="admin" style="display:none;">
+    <h2><i class="fa-solid fa-shield-halved"></i> Panel Administrador</h2>
+
+    <div class="admin-panel">
+      <h3>Crear nuevo evento</h3>
+      <form id="eventForm">
+        <input type="text" id="eventName" placeholder="Nombre del evento" required />
+        <input type="text" id="eventLocation" placeholder="Ubicación" required />
+        <input type="date" id="eventDate" required />
+        <input type="number" id="eventSlots" placeholder="Cupos disponibles" required />
+        <select id="eventCategory">
+          <option value="Cultural">Cultural</option>
+          <option value="Deportivo">Deportivo</option>
+          <option value="Educativo">Educativo</option>
+          <option value="Social">Social</option>
+          <option value="Musical">Musical</option>
+        </select>
+        <button type="submit" class="primary-btn">
+          <i class="fa-solid fa-plus"></i> Crear evento
+        </button>
+      </form>
+    </div>
+
+    <div class="admin-panel" style="margin-top:30px;">
+      <h3>Gestión de usuarios</h3>
+      <div id="usersList"></div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- FOOTER -->
+  <!-- ========================= -->
+  <footer>
+    <div class="footer-content">
+      <div>
+        <h3>SmartEvents Municipal</h3>
+        <p>Plataforma inteligente de gestión de eventos.</p>
+      </div>
+      <div>
+        <h4>Contacto</h4>
+        <p>Email: contacto@smartevents.cl</p>
+        <p>Teléfono: +56 9 9999 9999</p>
+      </div>
+      <div>
+        <h4>Redes Sociales</h4>
+        <div class="social-icons">
+          <i class="fa-brands fa-facebook"></i>
+          <i class="fa-brands fa-instagram"></i>
+          <i class="fa-brands fa-x-twitter"></i>
+        </div>
+      </div>
+    </div>
+  </footer>
+
+  <!-- ========================= -->
+  <!-- MODAL LOGIN / REGISTER -->
+  <!-- ========================= -->
+  <div class="modal" id="authModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeAuthModal">&times;</span>
+      <h2 id="authModalTitle">Iniciar sesión</h2>
+
+      <div id="loginForm">
+        <input type="email" id="loginEmail" placeholder="Correo electrónico" required />
+        <input type="password" id="loginPassword" placeholder="Contraseña" required />
+        <button class="primary-btn" id="loginSubmitBtn" style="width:100%;">Ingresar</button>
+        <p style="margin-top:15px;text-align:center;">
+          ¿No tienes cuenta?
+          <a href="#" id="showRegisterLink">Regístrate</a>
+        </p>
+      </div>
+
+      <div id="registerForm" style="display:none;">
+        <input type="text" id="registerName" placeholder="Nombre completo" required />
+        <input type="email" id="registerEmail" placeholder="Correo electrónico" required />
+        <input type="password" id="registerPassword" placeholder="Contraseña" required />
+        <button class="primary-btn" id="registerSubmitBtn" style="width:100%;">Crear cuenta</button>
+        <p style="margin-top:15px;text-align:center;">
+          ¿Ya tienes cuenta?
+          <a href="#" id="showLoginLink">Inicia sesión</a>
+        </p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL INSCRIPCIÓN -->
+  <!-- ========================= -->
+  <div class="modal" id="registrationModal">
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Inscripción Evento</h2>
+      <form id="registrationForm">
+        <input type="text" id="participantName" placeholder="Nombre completo" required />
+        <input type="email" id="participantEmail" placeholder="Correo electrónico" required />
+        <button type="submit" class="primary-btn" style="width:100%;">Confirmar inscripción</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL DETALLES EVENTO -->
+  <!-- ========================= -->
+  <div class="modal" id="eventDetailModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closeDetailModal">&times;</span>
+      <div id="eventDetailContent"></div>
+    </div>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="script.js"></script>
+
+</body>
+</html>
