@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartEvents Municipal</title>
+  <title>SmartEvents — Descubre eventos cerca de ti</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css" />
@@ -37,6 +37,9 @@
       <li id="userNavItem" style="display:none">
         <div class="user-menu">
           <span id="userNameDisplay"></span>
+          <button class="secondary-btn" id="myReviewsBtn" style="margin-right:8px;">
+            <i class="fa-solid fa-star"></i> Mis reseñas
+          </button>
           <button class="secondary-btn" id="logoutBtn">
             <i class="fa-solid fa-sign-out-alt"></i>
           </button>
@@ -50,11 +53,11 @@
   <!-- ========================= -->
   <section class="hero" id="inicio">
     <div class="hero-content">
-      <h1>SmartEvents Municipal</h1>
-      <p>Plataforma inteligente de gestión de eventos municipales con análisis en tiempo real, mapas interactivos e integración con Google Calendar.</p>
+      <h1>SmartEvents</h1>
+      <p>Descubre eventos, turismo y actividades cerca de ti. Explora, inscríbete, califica y comparte tu experiencia como en una red social de eventos.</p>
       <div class="hero-buttons">
-        <a href="#eventos" class="primary-btn">Ver eventos</a>
-        <a href="#dashboard" class="secondary-btn">Dashboard</a>
+        <a href="#eventos" class="primary-btn">Explorar eventos</a>
+        <a href="#mapa" class="secondary-btn">Ver mapa</a>
       </div>
     </div>
   </section>
@@ -63,12 +66,18 @@
   <!-- DESTACADOS -->
   <!-- ========================= -->
   <section id="destacados">
-    <h2><i class="fa-solid fa-star"></i> ¿Por qué SmartEvents?</h2>
+    <h2><i class="fa-solid fa-compass"></i> Tu guía de eventos</h2>
     <div class="featured-container">
       <div class="featured-card">
-        <i class="fa-solid fa-chart-line fa-2x" style="color:#38bdf8"></i>
-        <h3>Dashboard Inteligente</h3>
-        <p>Estadísticas dinámicas con análisis de IA y gráficos en tiempo real.</p>
+        <i class="fa-solid fa-location-dot fa-2x" style="color:#38bdf8"></i>
+        <h3>Eventos cerca de ti</h3>
+        <p>Geolocalización para encontrar actividades culturales, deportivas y turísticas en tu zona.</p>
+        <span class="tag">Nuevo</span>
+      </div>
+      <div class="featured-card">
+        <i class="fa-solid fa-star fa-2x" style="color:#facc15"></i>
+        <h3>Reseñas como Letterboxd</h3>
+        <p>Califica eventos con estrellas, escribe reseñas y comparte tu experiencia con la comunidad.</p>
         <span class="tag">Nuevo</span>
       </div>
       <div class="featured-card">
@@ -80,13 +89,7 @@
       <div class="featured-card">
         <i class="fa-solid fa-bell fa-2x" style="color:#38bdf8"></i>
         <h3>Notificaciones Push</h3>
-        <p>Recibe alertas cuando se abran inscripciones o cambie un evento.</p>
-        <span class="tag">Nuevo</span>
-      </div>
-      <div class="featured-card">
-        <i class="fa-solid fa-calendar-plus fa-2x" style="color:#38bdf8"></i>
-        <h3>Google Calendar</h3>
-        <p>Sincroniza eventos directamente con tu calendario de Google.</p>
+        <p>Recibe alertas cuando se abran inscripciones o haya eventos nuevos cerca de ti.</p>
         <span class="tag">Nuevo</span>
       </div>
     </div>
@@ -121,6 +124,9 @@
         <option value="high">Más populares</option>
         <option value="low">Menos populares</option>
       </select>
+      <button class="secondary-btn" id="nearbyBtn">
+        <i class="fa-solid fa-location-crosshairs"></i> Cerca de mí
+      </button>
     </div>
 
     <div class="events-container" id="eventsContainer"></div>
@@ -287,6 +293,17 @@
     <div class="modal-content modal-lg">
       <span class="close-modal" id="closeDetailModal">&times;</span>
       <div id="eventDetailContent"></div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL MIS RESEÑAS -->
+  <!-- ========================= -->
+  <div class="modal" id="myReviewsModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closeMyReviewsModal">&times;</span>
+      <h2><i class="fa-solid fa-star"></i> Mis reseñas</h2>
+      <div id="myReviewsList"></div>
     </div>
   </div>
 

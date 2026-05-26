@@ -553,6 +553,133 @@ footer {
 }
 
 /* ========================= */
+/* REVIEWS / STARS */
+/* ========================= */
+
+.review-summary {
+  margin: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.stars {
+  color: #facc15;
+  font-size: 1.1rem;
+  letter-spacing: 1px;
+}
+
+.star-rating {
+  display: flex;
+  gap: 4px;
+  margin: 10px 0;
+  font-size: 1.8rem;
+}
+
+.star-input {
+  cursor: pointer;
+  color: #334155;
+  transition: 0.2s;
+}
+
+.star-input.active,
+.star-input:hover {
+  color: #facc15;
+}
+
+.review-form {
+  background: rgba(255,255,255,0.03);
+  border-radius: 16px;
+  padding: 20px;
+  margin: 20px 0;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+
+.review-form textarea {
+  width: 100%;
+  padding: 12px;
+  border-radius: 12px;
+  border: none;
+  background: #1e293b;
+  color: white;
+  resize: vertical;
+  margin-bottom: 12px;
+  font-family: inherit;
+  outline: none;
+}
+
+.review-form textarea:focus {
+  box-shadow: 0 0 0 2px #0ea5e9;
+}
+
+.reviews-section {
+  margin-top: 30px;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  padding-top: 25px;
+}
+
+.reviews-section h3 {
+  margin-bottom: 15px;
+}
+
+.review-card {
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  padding: 16px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.review-card p {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  line-height: 1.5;
+}
+
+.review-date {
+  opacity: 0.4;
+  font-size: 0.75rem;
+}
+
+.detail-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin: 20px 0;
+}
+
+.my-review-item {
+  background: rgba(255,255,255,0.03);
+  border-radius: 14px;
+  padding: 18px;
+  margin-bottom: 12px;
+  border: 1px solid rgba(255,255,255,0.05);
+}
+
+.my-review-item h4 {
+  margin-bottom: 4px;
+}
+
+.nearby-badge {
+  display: inline-block;
+  background: #065f46;
+  color: #6ee7b7;
+  font-size: 0.7rem;
+  padding: 3px 8px;
+  border-radius: 8px;
+  font-weight: 600;
+  vertical-align: middle;
+  margin-left: 6px;
+}
+
+/* ========================= */
 /* MAPA */
 /* ========================= */
 
@@ -612,6 +739,31 @@ footer {
 
 .dark-mode #analysisMessages p {
     border-color: rgba(0,0,0,0.08);
+}
+
+.dark-mode .review-form {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.06);
+}
+
+.dark-mode .review-form textarea {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.dark-mode .review-card,
+.dark-mode .my-review-item {
+  background: rgba(0,0,0,0.03);
+  border-color: rgba(0,0,0,0.06);
+}
+
+.dark-mode .star-input {
+  color: #e2e8f0;
+}
+
+.dark-mode .star-input.active,
+.dark-mode .star-input:hover {
+  color: #eab308;
 }
 
 .dark-mode .modal {

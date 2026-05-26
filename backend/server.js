@@ -10,6 +10,7 @@ const statsRoutes = require('./routes/stats');
 const aiRoutes = require('./routes/ai');
 const calendarRoutes = require('./routes/calendar');
 const notificationRoutes = require('./routes/notifications');
+const reviewRoutes = require('./routes/reviews');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -24,6 +25,7 @@ app.use('/api/stats', statsRoutes);
 app.use('/api/ai', aiRoutes);
 app.use('/api/calendar', calendarRoutes);
 app.use('/api/notifications', notificationRoutes);
+app.use('/api/reviews', reviewRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });

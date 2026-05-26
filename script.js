@@ -12,20 +12,25 @@ const popularityFilter = document.getElementById('popularityFilter');
 const modal = document.getElementById('registrationModal');
 const authModal = document.getElementById('authModal');
 const detailModal = document.getElementById('eventDetailModal');
+const myReviewsModal = document.getElementById('myReviewsModal');
 const closeModal = document.querySelector('#registrationModal .close-modal');
 const closeAuth = document.getElementById('closeAuthModal');
 const closeDetail = document.getElementById('closeDetailModal');
+const closeMyReviews = document.getElementById('closeMyReviewsModal');
 const registrationForm = document.getElementById('registrationForm');
 const loginBtn = document.getElementById('loginBtn');
 const logoutBtn = document.getElementById('logoutBtn');
+const myReviewsBtn = document.getElementById('myReviewsBtn');
 const authNavItem = document.getElementById('authNavItem');
 const userNavItem = document.getElementById('userNavItem');
 const userNameDisplay = document.getElementById('userNameDisplay');
 const adminSection = document.getElementById('admin');
 const adminNavItem = document.getElementById('adminNavItem');
 const darkModeBtn = document.getElementById('darkModeBtn');
+const nearbyBtn = document.getElementById('nearbyBtn');
 
 let selectedEventId = null;
+let userCoords = null;
 
 const api = {
   get: async (url) => {
@@ -107,6 +112,7 @@ loginBtn.addEventListener('click', () => {
 closeAuth.addEventListener('click', () => authModal.style.display = 'none');
 closeModal.addEventListener('click', () => modal.style.display = 'none');
 closeDetail.addEventListener('click', () => detailModal.style.display = 'none');
+closeMyReviews.addEventListener('click', () => myReviewsModal.style.display = 'none');
 
 document.getElementById('showRegisterLink').addEventListener('click', (e) => {
   e.preventDefault();
@@ -159,6 +165,7 @@ window.addEventListener('click', (e) => {
   if (e.target === authModal) authModal.style.display = 'none';
   if (e.target === modal) modal.style.display = 'none';
   if (e.target === detailModal) detailModal.style.display = 'none';
+  if (e.target === myReviewsModal) myReviewsModal.style.display = 'none';
 });
 
 // =========================
@@ -179,7 +186,20 @@ async function loadEvents() {
   }
 }
 
-function renderEvents(filteredList) {
+function renderStars(rating) {
+  const full = Math.floor(rating);
+  const half = rating % 1 >= 0.5 ? 1 : 0;
+  const empty = 5 - full - half;
+  return '★'.repeat(full) + (half ? '½' : '') + '☆'.repeat(empty);
+}
+
+function renderStarsInput(rating) {
+  return Array.from({ length: 5 }, (_, i) =>
+    `<span class="star-input ${i < rating ? 'active' : ''}" data-value="${i + 1}">★</span>`
+  ).join('');
+}
+
+async function renderEvents(filteredList) {
   const list = filteredList || events;
   container.innerHTML = '';
 
@@ -193,21 +213,44 @@ function renderEvents(filteredList) {
   if (popularity === 'high') displayList.sort((a, b) => b.participants - a.participants);
   if (popularity === 'low') displayList.sort((a, b) => a.participants - b.participants);
 
-  displayList.forEach(event => {
+  if (popularity === 'nearby' && userCoords) {
+    displayList.sort((a, b) => {
+      const distA = haversine(userCoords.lat, userCoords.lng, a.lat, a.lng);
+      const distB = haversine(userCoords.lat, userCoords.lng, b.lat, b.lng);
+      return distA - distB;
+    });
+  }
+
+  for (const event of displayList) {
     const card = document.createElement('div');
     card.classList.add('event-card');
     const img = event.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070';
     const statusClass = event.status === 'Completado' ? 'status-completed' : event.status === 'Próximo' ? 'status-upcoming' : 'status-available';
 
+    let avgHtml = '';
+    try {
+      const revData = await api.get(`/reviews/event/${event.id}`);
+      if (revData.total > 0) {
+        avgHtml = `<div class="review-summary"><span class="stars">${renderStars(revData.average)}</span> <small>${revData.total} reseña${revData.total !== 1 ? 's' : ''}</small></div>`;
+      }
+    } catch { /* no reviews */ }
+
+    let nearbyTag = '';
+    if (userCoords && event.lat && event.lng) {
+      const dist = haversine(userCoords.lat, userCoords.lng, event.lat, event.lng);
+      if (dist < 10) nearbyTag = `<span class="nearby-badge"><i class="fa-solid fa-location-dot"></i> ${dist.toFixed(1)} km</span>`;
+    }
+
     card.innerHTML = `
       <img src="${img}" alt="${event.name}" loading="lazy" />
       <div class="event-info">
-        <h3>${event.name}</h3>
+        <h3>${event.name} ${nearbyTag}</h3>
         <p><i class="fa-solid fa-calendar"></i> ${formatDate(event.date)}</p>
         <p><i class="fa-solid fa-location-dot"></i> ${event.location}</p>
         <p>${event.description || ''}</p>
         <p><strong>Categoría:</strong> ${event.category}</p>
         <p><strong>Cupos:</strong> ${event.slots} <strong>Inscritos:</strong> ${event.participants}</p>
+        ${avgHtml}
         <div class="event-status ${statusClass}">${event.status}</div>
         <div class="event-buttons">
           <button onclick="openRegistration(${event.id})">Inscribirse</button>
@@ -217,7 +260,16 @@ function renderEvents(filteredList) {
       </div>
     `;
     container.appendChild(card);
-  });
+  }
+}
+
+function haversine(lat1, lon1, lat2, lon2) {
+  if (!lat1 || !lon1 || !lat2 || !lon2) return Infinity;
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
 function formatDate(dateStr) {
@@ -226,13 +278,57 @@ function formatDate(dateStr) {
 }
 
 // =========================
-// EVENT DETAIL MODAL
+// NEARBY EVENTS
+// =========================
+nearbyBtn.addEventListener('click', () => {
+  if (!navigator.geolocation) return alert('Geolocalización no disponible');
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      userCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      popularityFilter.value = 'nearby';
+      renderEvents();
+    },
+    () => alert('Activa la ubicación para ver eventos cercanos')
+  );
+});
+
+// =========================
+// EVENT DETAIL + REVIEWS
 // =========================
 async function showEventDetail(id) {
   try {
     const event = await api.get(`/events/${id}`);
     const content = document.getElementById('eventDetailContent');
     const img = event.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070';
+
+    const revData = await api.get(`/reviews/event/${id}`);
+    const userReview = currentUser ? revData.reviews.find(r => r.user_id === currentUser.id) : null;
+    const avgStars = renderStars(revData.average);
+
+    const reviewsHtml = revData.reviews.map(r => `
+      <div class="review-card">
+        <div class="review-header">
+          <strong>${r.user_name}</strong>
+          <span class="stars">${renderStars(r.rating)}</span>
+        </div>
+        ${r.comment ? `<p>${r.comment}</p>` : ''}
+        <small class="review-date">${new Date(r.created_at).toLocaleDateString('es-CL')}</small>
+      </div>
+    `).join('');
+
+    const reviewFormHtml = currentUser ? `
+      <div class="review-form">
+        <h4>${userReview ? 'Tu reseña' : 'Califica este evento'}</h4>
+        <div class="star-rating" id="starRating">
+          ${renderStarsInput(userReview ? userReview.rating : 0)}
+        </div>
+        <textarea id="reviewComment" placeholder="Escribe tu reseña (opcional)..." rows="3">${userReview ? userReview.comment || '' : ''}</textarea>
+        <button class="primary-btn" id="submitReviewBtn" onclick="submitReview(${id})">
+          ${userReview ? 'Actualizar reseña' : 'Publicar reseña'}
+        </button>
+      </div>
+    ` : '<p style="margin-top:15px;"><a href="#" onclick="document.getElementById(\'loginBtn\').click();return false;">Inicia sesión</a> para dejar una reseña.</p>';
+
     content.innerHTML = `
       <img src="${img}" alt="${event.name}" style="width:100%;height:250px;object-fit:cover;border-radius:15px;margin-bottom:20px;" />
       <h2>${event.name}</h2>
@@ -242,7 +338,8 @@ async function showEventDetail(id) {
       <p><strong>Categoría:</strong> ${event.category}</p>
       <p><strong>Cupos:</strong> ${event.slots} | <strong>Inscritos:</strong> ${event.participants}</p>
       <p><strong>Estado:</strong> ${event.status}</p>
-      <div style="margin-top:20px;display:flex;gap:10px;flex-wrap:wrap;">
+
+      <div class="detail-actions">
         <button class="primary-btn" onclick="syncToCalendar(${event.id})">
           <i class="fa-solid fa-calendar-plus"></i> Google Calendar
         </button>
@@ -250,11 +347,83 @@ async function showEventDetail(id) {
           Inscribirse
         </button>
       </div>
+
+      <div class="reviews-section">
+        <h3><i class="fa-solid fa-star"></i> Reseñas ${revData.total > 0 ? `<span class="stars">${avgStars}</span> <small>(${revData.total})</small>` : ''}</h3>
+
+        ${reviewFormHtml}
+
+        <div class="reviews-list">
+          ${reviewsHtml || '<p style="opacity:0.5;">Sin reseñas aún. ¡Sé el primero en calificar!</p>'}
+        </div>
+      </div>
     `;
+
+    const stars = content.querySelectorAll('.star-input');
+    stars.forEach(s => {
+      s.addEventListener('click', () => {
+        const val = parseInt(s.dataset.value);
+        document.getElementById('starRating').innerHTML = renderStarsInput(val);
+        document.getElementById('starRating').dataset.rating = val;
+        const newStars = document.querySelectorAll('.star-input');
+        newStars.forEach(ns => ns.addEventListener('click', arguments.callee));
+      });
+    });
+
     detailModal.style.display = 'flex';
-  } catch {
+  } catch (err) {
     alert('Error al cargar detalles');
   }
+}
+
+// =========================
+// SUBMIT REVIEW
+// =========================
+async function submitReview(eventId) {
+  if (!currentUser) return alert('Debes iniciar sesión');
+  const ratingEl = document.getElementById('starRating');
+  const rating = parseInt(ratingEl.dataset.rating) || 0;
+  if (!rating) return alert('Selecciona una calificación de 1 a 5 estrellas');
+  const comment = document.getElementById('reviewComment').value;
+  try {
+    await api.post('/reviews', { event_id: eventId, rating, comment });
+    alert('Reseña guardada');
+    showEventDetail(eventId);
+  } catch (err) {
+    alert(err.error || 'Error al guardar reseña');
+  }
+}
+
+// =========================
+// MY REVIEWS
+// =========================
+myReviewsBtn.addEventListener('click', showMyReviews);
+
+async function showMyReviews() {
+  if (!currentUser) return;
+  try {
+    const registrations = await api.get('/registrations/my');
+    const list = document.getElementById('myReviewsList');
+    const items = await Promise.all(registrations.map(async (reg) => {
+      let reviewHtml = '<p style="opacity:0.4;">Sin calificar</p>';
+      try {
+        const revData = await api.get(`/reviews/event/${reg.event_id}`);
+        const myRev = revData.reviews.find(r => r.user_id === currentUser.id);
+        if (myRev) {
+          reviewHtml = `<div class="stars">${renderStars(myRev.rating)}</div>${myRev.comment ? `<p>${myRev.comment}</p>` : ''}`;
+        }
+      } catch { /* no review */ }
+      return `
+        <div class="my-review-item">
+          <h4>${reg.event_name}</h4>
+          <p><small>${formatDate(reg.date)} · ${reg.location}</small></p>
+          ${reviewHtml}
+        </div>
+      `;
+    }));
+    list.innerHTML = items.join('') || '<p>No te has inscrito a ningún evento aún.</p>';
+    myReviewsModal.style.display = 'flex';
+  } catch { /* silent */ }
 }
 
 // =========================
@@ -274,7 +443,6 @@ registrationForm.addEventListener('submit', async (e) => {
   const name = document.getElementById('participantName').value;
   const email = document.getElementById('participantEmail').value;
   if (!name || !email) return alert('Complete todos los campos');
-
   try {
     await api.post('/registrations', {
       event_id: selectedEventId,
@@ -316,7 +484,6 @@ async function updateDashboard() {
     createChart(stats.events);
     loadAnalysis();
   } catch {
-    // fallback a datos locales
     document.getElementById('totalEvents').innerText = events.length;
     const totalPart = events.reduce((s, e) => s + e.participants, 0);
     document.getElementById('totalParticipants').innerText = totalPart;
@@ -405,17 +572,13 @@ async function syncToCalendar(eventId) {
     endDate.setHours(endDate.getHours() + 2);
     const data = await api.post('/calendar/sync', {
       summary: event.name,
-      description: event.description || 'Evento SmartEvents Municipal',
+      description: event.description || 'Evento SmartEvents',
       location: event.location,
       startDate: event.date,
       endDate: endDate.toISOString().split('T')[0]
     });
-
-    if (data.eventUrl) {
-      window.open(data.eventUrl, '_blank');
-    } else if (data.googleCalendarLink) {
-      window.open(data.googleCalendarLink, '_blank');
-    }
+    if (data.eventUrl) window.open(data.eventUrl, '_blank');
+    else if (data.googleCalendarLink) window.open(data.googleCalendarLink, '_blank');
   } catch {
     alert('Error al sincronizar con Google Calendar');
   }
@@ -436,7 +599,6 @@ function updateMap() {
   if (!map) return;
   mapMarkers.forEach(m => map.removeLayer(m));
   mapMarkers = [];
-
   events.forEach(event => {
     if (event.lat && event.lng) {
       const marker = L.marker([event.lat, event.lng])
@@ -445,7 +607,6 @@ function updateMap() {
       mapMarkers.push(marker);
     }
   });
-
   if (mapMarkers.length > 0) {
     const group = L.featureGroup(mapMarkers);
     map.fitBounds(group.getBounds().pad(0.1));
@@ -459,7 +620,7 @@ document.getElementById('sendTestNotificationBtn')?.addEventListener('click', as
   try {
     if (!token) return alert('Debes iniciar sesión');
     await api.post('/notifications/send', {
-      title: 'SmartEvents Municipal',
+      title: 'SmartEvents',
       body: '¡Notificación de prueba! Los eventos están disponibles.'
     });
     alert('Notificación enviada');

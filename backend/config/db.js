@@ -68,6 +68,18 @@ const initDB = async () => {
         FOREIGN KEY (event_id) REFERENCES events(id)
       );
 
+      CREATE TABLE IF NOT EXISTS reviews (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        event_id INT NOT NULL,
+        rating TINYINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        comment TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id),
+        FOREIGN KEY (event_id) REFERENCES events(id),
+        UNIQUE KEY unique_review (user_id, event_id)
+      );
+
       INSERT IGNORE INTO roles (id, name) VALUES (1, 'admin'), (2, 'organizer'), (3, 'user');
     `;
 
