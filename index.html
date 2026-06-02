@@ -3,13 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>SmartEvents — Descubre eventos cerca de ti</title>
+  <title id="pageTitle">SmartEvents — Descubre eventos</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
   <link rel="stylesheet" href="styles.css" />
   <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
+
+  <!-- ========================= -->
+  <!-- FLOATING NEARBY WIDGET -->
+  <!-- ========================= -->
+  <div id="nearbyWidget" class="nearby-widget" style="display:none;">
+    <i class="fa-solid fa-location-dot"></i>
+    <span id="nearbyWidgetText"></span>
+  </div>
 
   <!-- ========================= -->
   <!-- NAVBAR -->
@@ -20,10 +28,19 @@
       SmartEvents
     </div>
     <ul class="nav-links">
-      <li><a href="#inicio">Inicio</a></li>
-      <li><a href="#eventos">Eventos</a></li>
-      <li><a href="#dashboard">Dashboard</a></li>
+      <li><a href="#inicio" data-i18n="nav_home">Inicio</a></li>
+      <li><a href="#eventos" data-i18n="nav_events">Eventos</a></li>
+      <li><a href="#social" data-i18n="nav_social">Comunidad</a></li>
+      <li><a href="#calendario" data-i18n="nav_calendar">Calendario</a></li>
+      <li><a href="#dashboard" data-i18n="nav_dashboard">Dashboard</a></li>
       <li id="adminNavItem" style="display:none"><a href="#admin">Admin</a></li>
+      <li>
+        <select id="langSelector" class="lang-select">
+          <option value="es">🇪🇸 ES</option>
+          <option value="en">🇬🇧 EN</option>
+          <option value="pt">🇧🇷 PT</option>
+        </select>
+      </li>
       <li>
         <button class="secondary-btn" id="darkModeBtn">
           <i class="fa-solid fa-moon"></i>
@@ -31,14 +48,17 @@
       </li>
       <li id="authNavItem">
         <button class="primary-btn" id="loginBtn">
-          <i class="fa-solid fa-user"></i> Ingresar
+          <i class="fa-solid fa-user"></i> <span data-i18n="nav_login">Ingresar</span>
         </button>
       </li>
       <li id="userNavItem" style="display:none">
         <div class="user-menu">
           <span id="userNameDisplay"></span>
-          <button class="secondary-btn" id="myReviewsBtn" style="margin-right:8px;">
-            <i class="fa-solid fa-star"></i> Mis reseñas
+          <button class="secondary-btn" id="myReviewsBtn" style="margin-right:8px;" title="Mis reseñas">
+            <i class="fa-solid fa-star"></i>
+          </button>
+          <button class="secondary-btn" id="profileBtn" style="margin-right:8px;" title="Mi perfil">
+            <i class="fa-solid fa-id-card"></i>
           </button>
           <button class="secondary-btn" id="logoutBtn">
             <i class="fa-solid fa-sign-out-alt"></i>
@@ -54,43 +74,43 @@
   <section class="hero" id="inicio">
     <div class="hero-content">
       <h1>SmartEvents</h1>
-      <p>Descubre eventos, turismo y actividades cerca de ti. Explora, inscríbete, califica y comparte tu experiencia como en una red social de eventos.</p>
+      <p data-i18n="hero_desc">Descubre eventos, turismo y actividades cerca de ti. Explora, inscríbete, califica y comparte tu experiencia.</p>
       <div class="hero-buttons">
-        <a href="#eventos" class="primary-btn">Explorar eventos</a>
-        <a href="#mapa" class="secondary-btn">Ver mapa</a>
+        <a href="#eventos" class="primary-btn" data-i18n="hero_explore">Explorar eventos</a>
+        <a href="#mapa" class="secondary-btn" data-i18n="hero_map">Ver mapa</a>
       </div>
     </div>
   </section>
 
   <!-- ========================= -->
-  <!-- DESTACADOS -->
+  <!-- FEATURES -->
   <!-- ========================= -->
   <section id="destacados">
-    <h2><i class="fa-solid fa-compass"></i> Tu guía de eventos</h2>
+    <h2><i class="fa-solid fa-compass"></i> <span data-i18n="features_title">Tu guía de eventos</span></h2>
     <div class="featured-container">
       <div class="featured-card">
         <i class="fa-solid fa-location-dot fa-2x" style="color:#38bdf8"></i>
-        <h3>Eventos cerca de ti</h3>
-        <p>Geolocalización para encontrar actividades culturales, deportivas y turísticas en tu zona.</p>
-        <span class="tag">Nuevo</span>
+        <h3 data-i18n="f_nearby">Eventos cerca de ti</h3>
+        <p data-i18n="f_nearby_desc">Geolocalización para encontrar actividades culturales, deportivas y turísticas en tu zona.</p>
+        <span class="tag" data-i18n="new">Nuevo</span>
       </div>
       <div class="featured-card">
         <i class="fa-solid fa-star fa-2x" style="color:#facc15"></i>
-        <h3>Reseñas como Letterboxd</h3>
-        <p>Califica eventos con estrellas, escribe reseñas y comparte tu experiencia con la comunidad.</p>
-        <span class="tag">Nuevo</span>
+        <h3 data-i18n="f_reviews">Reseñas como Letterboxd</h3>
+        <p data-i18n="f_reviews_desc">Califica eventos con estrellas, escribe reseñas y comparte tu experiencia con la comunidad.</p>
+        <span class="tag" data-i18n="new">Nuevo</span>
       </div>
       <div class="featured-card">
-        <i class="fa-solid fa-map-location-dot fa-2x" style="color:#38bdf8"></i>
-        <h3>Mapa Interactivo</h3>
-        <p>Visualiza todos los eventos en un mapa con ubicación georreferenciada.</p>
-        <span class="tag">Nuevo</span>
+        <i class="fa-solid fa-comments fa-2x" style="color:#22c55e"></i>
+        <h3 data-i18n="f_feed">Feed Social</h3>
+        <p data-i18n="f_feed_desc">Publica fotos, comparte experiencias, da me gusta y comenta publicaciones de la comunidad.</p>
+        <span class="tag" data-i18n="new">Nuevo</span>
       </div>
       <div class="featured-card">
-        <i class="fa-solid fa-bell fa-2x" style="color:#38bdf8"></i>
-        <h3>Notificaciones Push</h3>
-        <p>Recibe alertas cuando se abran inscripciones o haya eventos nuevos cerca de ti.</p>
-        <span class="tag">Nuevo</span>
+        <i class="fa-solid fa-calendar-days fa-2x" style="color:#a855f7"></i>
+        <h3 data-i18n="f_timeline">Línea de Tiempo</h3>
+        <p data-i18n="f_timeline_desc">Visualiza eventos próximos, en curso y finalizados con una vista cronológica.</p>
+        <span class="tag" data-i18n="new">Nuevo</span>
       </div>
     </div>
   </section>
@@ -99,20 +119,32 @@
   <!-- MAPA -->
   <!-- ========================= -->
   <section id="mapa">
-    <h2><i class="fa-solid fa-map"></i> Mapa de Eventos</h2>
+    <h2><i class="fa-solid fa-map"></i> <span data-i18n="map_title">Mapa de Eventos</span></h2>
     <div id="map" style="height:450px;border-radius:20px;overflow:hidden;"></div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- LÍNEA DE TIEMPO -->
+  <!-- ========================= -->
+  <section id="timeline">
+    <h2><i class="fa-solid fa-timeline"></i> <span data-i18n="timeline_title">Línea de Tiempo</span></h2>
+    <div class="timeline-tabs">
+      <button class="tl-btn active" data-tl="upcoming" data-i18n="tl_upcoming">Próximos</button>
+      <button class="tl-btn" data-tl="ongoing" data-i18n="tl_ongoing">Hoy</button>
+      <button class="tl-btn" data-tl="finished" data-i18n="tl_finished">Finalizados</button>
+    </div>
+    <div class="timeline-container" id="timelineContainer"></div>
   </section>
 
   <!-- ========================= -->
   <!-- EVENTOS -->
   <!-- ========================= -->
   <section id="eventos">
-    <h2><i class="fa-solid fa-calendar"></i> Eventos Disponibles</h2>
-
+    <h2><i class="fa-solid fa-calendar"></i> <span data-i18n="events_title">Eventos Disponibles</span></h2>
     <div class="filters-section">
       <input type="text" id="searchInput" placeholder="Buscar eventos..." />
       <select id="categoryFilter">
-        <option value="all">Todas las categorías</option>
+        <option value="all" data-i18n="all_categories">Todas las categorías</option>
         <option value="Cultural">Cultural</option>
         <option value="Deportivo">Deportivo</option>
         <option value="Educativo">Educativo</option>
@@ -120,45 +152,83 @@
         <option value="Musical">Musical</option>
       </select>
       <select id="popularityFilter">
-        <option value="all">Todos</option>
-        <option value="high">Más populares</option>
-        <option value="low">Menos populares</option>
+        <option value="all" data-i18n="all">Todos</option>
+        <option value="high" data-i18n="most_popular">Más populares</option>
+        <option value="low" data-i18n="least_popular">Menos populares</option>
       </select>
       <button class="secondary-btn" id="nearbyBtn">
-        <i class="fa-solid fa-location-crosshairs"></i> Cerca de mí
+        <i class="fa-solid fa-location-crosshairs"></i> <span data-i18n="nearby_me">Cerca de mí</span>
+      </button>
+      <button class="secondary-btn" id="searchPeopleBtn">
+        <i class="fa-solid fa-users"></i> <span data-i18n="search_people">Buscar personas</span>
       </button>
     </div>
-
     <div class="events-container" id="eventsContainer"></div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- FEED SOCIAL -->
+  <!-- ========================= -->
+  <section id="social">
+    <h2><i class="fa-solid fa-comments"></i> <span data-i18n="social_title">Comunidad</span></h2>
+    <div class="social-feed" id="socialFeed">
+      <div class="social-publish" id="socialPublishBox" style="display:none;">
+        <textarea id="socialContent" placeholder="Comparte tu experiencia..." rows="3"></textarea>
+        <input type="url" id="socialImage" placeholder="URL de imagen (opcional)" />
+        <select id="socialEventSelect"><option value="">Sin evento relacionado</option></select>
+        <button class="primary-btn" id="socialPublishBtn"><i class="fa-solid fa-paper-plane"></i> <span data-i18n="publish">Publicar</span></button>
+      </div>
+      <p id="socialLoginMsg" data-i18n="social_login"><a href="#" onclick="document.getElementById('loginBtn').click();return false;">Inicia sesión</a> para publicar en la comunidad.</p>
+      <div id="socialPosts"></div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- CALENDARIO -->
+  <!-- ========================= -->
+  <section id="calendario">
+    <h2><i class="fa-solid fa-calendar-days"></i> <span data-i18n="calendar_title">Calendario Visual</span></h2>
+    <div class="calendar-nav">
+      <button class="secondary-btn" id="calPrev"><i class="fa-solid fa-chevron-left"></i></button>
+      <h3 id="calMonthYear"></h3>
+      <button class="secondary-btn" id="calNext"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+    <div class="calendar-grid" id="calendarGrid"></div>
   </section>
 
   <!-- ========================= -->
   <!-- DASHBOARD -->
   <!-- ========================= -->
   <section id="dashboard">
-    <h2><i class="fa-solid fa-chart-simple"></i> Dashboard</h2>
+    <h2><i class="fa-solid fa-chart-simple"></i> <span data-i18n="dashboard_title">Dashboard</span></h2>
 
     <div class="stats-grid">
       <div class="stat-card">
         <i class="fa-solid fa-calendar fa-2x" style="color:#38bdf8"></i>
         <p id="totalEvents">0</p>
-        <small>Eventos totales</small>
+        <small data-i18n="total_events">Eventos totales</small>
       </div>
       <div class="stat-card">
         <i class="fa-solid fa-users fa-2x" style="color:#22c55e"></i>
         <p id="totalParticipants">0</p>
-        <small>Participantes totales</small>
+        <small data-i18n="total_participants">Participantes totales</small>
       </div>
       <div class="stat-card">
         <i class="fa-solid fa-trophy fa-2x" style="color:#facc15"></i>
         <p id="popularEvent">-</p>
-        <small>Evento más popular</small>
+        <small data-i18n="popular_event">Evento más popular</small>
       </div>
       <div class="stat-card">
         <i class="fa-solid fa-tags fa-2x" style="color:#a855f7"></i>
         <p id="popularCategory">-</p>
-        <small>Categoría destacada</small>
+        <small data-i18n="popular_category">Categoría destacada</small>
       </div>
+    </div>
+
+    <!-- Mapa de Calor -->
+    <div class="heatmap-section">
+      <h3><i class="fa-solid fa-fire"></i> <span data-i18n="heatmap_title">Mapa de Calor por Comuna</span></h3>
+      <div id="heatmapContainer"></div>
     </div>
 
     <div class="chart-container">
@@ -166,19 +236,19 @@
     </div>
 
     <div class="ai-analysis" id="aiAnalysis">
-      <h3><i class="fa-solid fa-robot"></i> Análisis con IA</h3>
+      <h3><i class="fa-solid fa-robot"></i> <span data-i18n="ai_title">Análisis con IA</span></h3>
       <div id="analysisMessages"></div>
       <button class="primary-btn" id="refreshAnalysisBtn" style="margin-top:15px;">
-        <i class="fa-solid fa-rotate"></i> Refrescar análisis
+        <i class="fa-solid fa-rotate"></i> <span data-i18n="refresh">Refrescar análisis</span>
       </button>
     </div>
 
     <div style="margin-top:20px;display:flex;gap:15px;flex-wrap:wrap;">
       <button class="primary-btn" id="exportPdfBtn">
-        <i class="fa-solid fa-file-pdf"></i> Exportar PDF
+        <i class="fa-solid fa-file-pdf"></i> <span data-i18n="export_pdf">Exportar PDF</span>
       </button>
       <button class="secondary-btn" id="sendTestNotificationBtn">
-        <i class="fa-solid fa-bell"></i> Probar notificación
+        <i class="fa-solid fa-bell"></i> <span data-i18n="test_notification">Probar notificación</span>
       </button>
     </div>
   </section>
@@ -190,7 +260,7 @@
     <h2><i class="fa-solid fa-shield-halved"></i> Panel Administrador</h2>
 
     <div class="admin-panel">
-      <h3>Crear nuevo evento</h3>
+      <h3 data-i18n="create_event">Crear nuevo evento</h3>
       <form id="eventForm">
         <input type="text" id="eventName" placeholder="Nombre del evento" required />
         <input type="text" id="eventLocation" placeholder="Ubicación" required />
@@ -203,14 +273,24 @@
           <option value="Social">Social</option>
           <option value="Musical">Musical</option>
         </select>
-        <button type="submit" class="primary-btn">
-          <i class="fa-solid fa-plus"></i> Crear evento
-        </button>
+        <button type="submit" class="primary-btn"><i class="fa-solid fa-plus"></i> Crear evento</button>
       </form>
     </div>
 
     <div class="admin-panel" style="margin-top:30px;">
-      <h3>Gestión de usuarios</h3>
+      <h3 data-i18n="add_sponsor">Agregar patrocinador</h3>
+      <form id="sponsorForm">
+        <select id="sponsorEventSelect"><option value="">Seleccionar evento</option></select>
+        <input type="text" id="sponsorName" placeholder="Nombre empresa" required />
+        <input type="url" id="sponsorLogo" placeholder="URL logo" />
+        <input type="text" id="sponsorDesc" placeholder="Descripción / beneficios" />
+        <input type="url" id="sponsorWebsite" placeholder="Sitio web" />
+        <button type="submit" class="primary-btn"><i class="fa-solid fa-handshake"></i> Agregar patrocinador</button>
+      </form>
+    </div>
+
+    <div class="admin-panel" style="margin-top:30px;">
+      <h3 data-i18n="user_management">Gestión de usuarios</h3>
       <div id="usersList"></div>
     </div>
   </section>
@@ -221,16 +301,16 @@
   <footer>
     <div class="footer-content">
       <div>
-        <h3>SmartEvents Municipal</h3>
-        <p>Plataforma inteligente de gestión de eventos.</p>
+        <h3>SmartEvents</h3>
+        <p data-i18n="footer_desc">Plataforma inteligente de gestión de eventos.</p>
       </div>
       <div>
-        <h4>Contacto</h4>
+        <h4 data-i18n="contact">Contacto</h4>
         <p>Email: contacto@smartevents.cl</p>
         <p>Teléfono: +56 9 9999 9999</p>
       </div>
       <div>
-        <h4>Redes Sociales</h4>
+        <h4 data-i18n="social">Redes Sociales</h4>
         <div class="social-icons">
           <i class="fa-brands fa-facebook"></i>
           <i class="fa-brands fa-instagram"></i>
@@ -247,27 +327,60 @@
     <div class="modal-content">
       <span class="close-modal" id="closeAuthModal">&times;</span>
       <h2 id="authModalTitle">Iniciar sesión</h2>
-
       <div id="loginForm">
         <input type="email" id="loginEmail" placeholder="Correo electrónico" required />
         <input type="password" id="loginPassword" placeholder="Contraseña" required />
         <button class="primary-btn" id="loginSubmitBtn" style="width:100%;">Ingresar</button>
-        <p style="margin-top:15px;text-align:center;">
-          ¿No tienes cuenta?
-          <a href="#" id="showRegisterLink">Regístrate</a>
-        </p>
+        <button class="google-btn" id="googleLoginBtn"><i class="fa-brands fa-google"></i> Continuar con Google</button>
+        <p style="margin-top:8px;text-align:center;"><a href="#" id="showForgotLink">¿Olvidaste tu contraseña?</a></p>
+        <p style="margin-top:15px;text-align:center;">¿No tienes cuenta? <a href="#" id="showRegisterLink">Regístrate</a></p>
       </div>
-
       <div id="registerForm" style="display:none;">
         <input type="text" id="registerName" placeholder="Nombre completo" required />
         <input type="email" id="registerEmail" placeholder="Correo electrónico" required />
-        <input type="password" id="registerPassword" placeholder="Contraseña" required />
+        <input type="password" id="registerPassword" placeholder="Contraseña (opcional si usas Google)" />
+        <select id="registerRole"><option value="user">Usuario</option><option value="organizer">Organizador</option></select>
         <button class="primary-btn" id="registerSubmitBtn" style="width:100%;">Crear cuenta</button>
-        <p style="margin-top:15px;text-align:center;">
-          ¿Ya tienes cuenta?
-          <a href="#" id="showLoginLink">Inicia sesión</a>
-        </p>
+        <p style="margin-top:15px;text-align:center;">¿Ya tienes cuenta? <a href="#" id="showLoginLink">Inicia sesión</a></p>
       </div>
+      <div id="forgotForm" style="display:none;">
+        <input type="email" id="forgotEmail" placeholder="Tu correo electrónico" required />
+        <button class="primary-btn" id="forgotSubmitBtn" style="width:100%;">Enviar instrucciones</button>
+        <p style="margin-top:15px;text-align:center;"><a href="#" id="backToLoginLink">Volver a inicio de sesión</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL PERFIL -->
+  <!-- ========================= -->
+  <div class="modal" id="profileModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closeProfileModal">&times;</span>
+      <h2><i class="fa-solid fa-id-card"></i> Mi perfil</h2>
+      <div id="profileContent"></div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL PERFIL PÚBLICO -->
+  <!-- ========================= -->
+  <div class="modal" id="publicProfileModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closePublicProfileModal">&times;</span>
+      <div id="publicProfileContent"></div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL BUSCAR PERSONAS -->
+  <!-- ========================= -->
+  <div class="modal" id="searchPeopleModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closeSearchPeopleModal">&times;</span>
+      <h2><i class="fa-solid fa-users"></i> Buscar personas</h2>
+      <input type="text" id="peopleSearchInput" placeholder="Buscar por nombre, email o empresa..." style="width:100%;" />
+      <div id="peopleSearchResults" style="margin-top:20px;"></div>
     </div>
   </div>
 
@@ -277,7 +390,7 @@
   <div class="modal" id="registrationModal">
     <div class="modal-content">
       <span class="close-modal">&times;</span>
-      <h2>Inscripción Evento</h2>
+      <h2 data-i18n="event_registration">Inscripción Evento</h2>
       <form id="registrationForm">
         <input type="text" id="participantName" placeholder="Nombre completo" required />
         <input type="email" id="participantEmail" placeholder="Correo electrónico" required />
@@ -307,9 +420,30 @@
     </div>
   </div>
 
+  <!-- ========================= -->
+  <!-- MODAL ENCUESTA -->
+  <!-- ========================= -->
+  <div class="modal" id="surveyModal">
+    <div class="modal-content">
+      <span class="close-modal" id="closeSurveyModal">&times;</span>
+      <h2><i class="fa-solid fa-clipboard-check"></i> <span data-i18n="survey_title">Encuesta Post Evento</span></h2>
+      <div id="surveyContent"></div>
+    </div>
+  </div>
+
+  <!-- ========================= -->
+  <!-- MODAL COMENTARIOS -->
+  <!-- ========================= -->
+  <div class="modal" id="commentsModal">
+    <div class="modal-content modal-lg">
+      <span class="close-modal" id="closeCommentsModal">&times;</span>
+      <h2><i class="fa-solid fa-comment"></i> Comentarios</h2>
+      <div id="commentsContent"></div>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
   <script src="script.js"></script>
-
 </body>
 </html>

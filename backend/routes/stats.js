@@ -31,6 +31,39 @@ router.get('/dashboard', async (req, res) => {
   }
 });
 
+router.get('/heatmap', async (req, res) => {
+  try {
+    const [locations] = await pool.query(
+      `SELECT location, SUM(participants) AS total_participants, COUNT(*) AS total_events,
+              MAX(lat) AS lat, MAX(lng) AS lng
+       FROM events GROUP BY location ORDER BY total_participants DESC`
+    );
+    const total = locations.reduce((s, r) => s + r.total_participants, 0);
+    res.json({ locations, totalParticipants: total });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+router.get('/timeline', async (req, res) => {
+  try {
+    const [all] = await pool.query(
+      `SELECT id, name, date, status, participants, location, image
+       FROM events ORDER BY date ASC`
+    );
+    const now = new Date();
+    const upcoming = all.filter(e => new Date(e.date) >= now);
+    const ongoing = all.filter(e => {
+      const d = new Date(e.date);
+      return d.toDateString() === now.toDateString();
+    });
+    const finished = all.filter(e => new Date(e.date) < now);
+    res.json({ upcoming, ongoing, finished, all });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 router.get('/export/pdf', authenticate, authorize('admin'), async (req, res) => {
   try {
     const [events] = await pool.query('SELECT * FROM events ORDER BY date ASC');

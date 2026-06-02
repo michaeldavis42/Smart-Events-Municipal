@@ -32,11 +32,27 @@ const initDB = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         name VARCHAR(100) NOT NULL,
         email VARCHAR(100) NOT NULL UNIQUE,
-        password VARCHAR(255) NOT NULL,
+        password VARCHAR(255) DEFAULT NULL,
+        google_id VARCHAR(255) DEFAULT NULL,
         role_id INT DEFAULT 3,
+        reset_token VARCHAR(255) DEFAULT NULL,
+        reset_expires DATETIME DEFAULT NULL,
         push_subscription JSON,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (role_id) REFERENCES roles(id)
+      );
+
+      CREATE TABLE IF NOT EXISTS user_profiles (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL UNIQUE,
+        company_name VARCHAR(200) DEFAULT NULL,
+        company_description TEXT DEFAULT NULL,
+        phone VARCHAR(50) DEFAULT NULL,
+        website VARCHAR(255) DEFAULT NULL,
+        bio TEXT DEFAULT NULL,
+        avatar_url VARCHAR(500) DEFAULT NULL,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       );
 
       CREATE TABLE IF NOT EXISTS events (
@@ -72,7 +88,7 @@ const initDB = async () => {
         id INT AUTO_INCREMENT PRIMARY KEY,
         user_id INT NOT NULL,
         event_id INT NOT NULL,
-        rating TINYINT NOT NULL CHECK (rating >= 1 AND rating <= 5),
+        rating TINYINT NOT NULL,
         comment TEXT,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (user_id) REFERENCES users(id),
@@ -80,16 +96,77 @@ const initDB = async () => {
         UNIQUE KEY unique_review (user_id, event_id)
       );
 
+      CREATE TABLE IF NOT EXISTS social_posts (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        event_id INT DEFAULT NULL,
+        content TEXT NOT NULL,
+        image VARCHAR(500) DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE SET NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS social_likes (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        post_id INT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (post_id) REFERENCES social_posts(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_like (user_id, post_id)
+      );
+
+      CREATE TABLE IF NOT EXISTS social_comments (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL,
+        post_id INT NOT NULL,
+        content TEXT NOT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        FOREIGN KEY (post_id) REFERENCES social_posts(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS sponsors (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        name VARCHAR(200) NOT NULL,
+        logo_url VARCHAR(500) DEFAULT NULL,
+        description TEXT DEFAULT NULL,
+        website VARCHAR(255) DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS surveys (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        event_id INT NOT NULL,
+        user_id INT NOT NULL,
+        satisfaction TINYINT NOT NULL,
+        opinion TEXT DEFAULT NULL,
+        suggestion TEXT DEFAULT NULL,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+        UNIQUE KEY unique_survey (user_id, event_id)
+      );
+
       INSERT IGNORE INTO roles (id, name) VALUES (1, 'admin'), (2, 'organizer'), (3, 'user');
     `;
 
     const statements = schema.split(';').filter(s => s.trim());
     for (const stmt of statements) {
-      try {
-        await pool.query(stmt);
-      } catch (err) {
-        // table may already exist
-      }
+      try { await pool.query(stmt); } catch { /* may already exist */ }
+    }
+
+    const alterStatements = [
+      "ALTER TABLE users ADD COLUMN google_id VARCHAR(255) DEFAULT NULL AFTER password",
+      "ALTER TABLE users ADD COLUMN reset_token VARCHAR(255) DEFAULT NULL AFTER google_id",
+      "ALTER TABLE users ADD COLUMN reset_expires DATETIME DEFAULT NULL AFTER reset_token",
+      "ALTER TABLE users MODIFY COLUMN password VARCHAR(255) DEFAULT NULL"
+    ];
+    for (const stmt of alterStatements) {
+      try { await pool.query(stmt); } catch { /* column may already exist */ }
     }
 
     console.log('Database initialized successfully');
