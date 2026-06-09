@@ -151,6 +151,37 @@ const initDB = async () => {
         UNIQUE KEY unique_survey (user_id, event_id)
       );
 
+      CREATE TABLE IF NOT EXISTS service_providers (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        user_id INT NOT NULL UNIQUE,
+        business_name VARCHAR(255) NOT NULL DEFAULT '',
+        responsible_name VARCHAR(255) NOT NULL DEFAULT '',
+        email VARCHAR(255) NOT NULL DEFAULT '',
+        phone VARCHAR(100) NOT NULL DEFAULT '',
+        category VARCHAR(100) NOT NULL DEFAULT '',
+        description TEXT,
+        location VARCHAR(255) NOT NULL DEFAULT '',
+        price_range VARCHAR(100) NOT NULL DEFAULT '',
+        capacity VARCHAR(100) NOT NULL DEFAULT '',
+        availability VARCHAR(255) NOT NULL DEFAULT '',
+        social_links TEXT,
+        logo_url TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+      );
+
+      CREATE TABLE IF NOT EXISTS provider_contact_requests (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        provider_id INT NOT NULL,
+        event_id INT NOT NULL,
+        status VARCHAR(50) DEFAULT 'pending',
+        message TEXT,
+        created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (provider_id) REFERENCES service_providers(id) ON DELETE CASCADE,
+        FOREIGN KEY (event_id) REFERENCES events(id) ON DELETE CASCADE
+      );
+
       INSERT IGNORE INTO roles (id, name) VALUES (1, 'admin'), (2, 'organizer'), (3, 'user');
     `;
 

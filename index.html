@@ -5,8 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title id="pageTitle">SmartEvents — Descubre eventos</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="assets/css/base.css" />
+  <link rel="stylesheet" href="assets/css/layout.css" />
+  <link rel="stylesheet" href="assets/css/components.css" />
+  <link rel="stylesheet" href="assets/css/modules.css" />
+  <link rel="stylesheet" href="assets/css/dark-mode.css" />
   <link rel="manifest" href="/manifest.json" />
 </head>
 <body>
@@ -23,23 +26,30 @@
   <!-- NAVBAR -->
   <!-- ========================= -->
   <nav class="navbar">
-    <div class="logo">
+    <a href="#inicio" class="logo" style="text-decoration:none;">
       <i class="fa-solid fa-calendar-check"></i>
       SmartEvents
-    </div>
+    </a>
     <ul class="nav-links">
       <li><a href="#inicio" data-i18n="nav_home">Inicio</a></li>
       <li><a href="#eventos" data-i18n="nav_events">Eventos</a></li>
       <li><a href="#social" data-i18n="nav_social">Comunidad</a></li>
-      <li><a href="#calendario" data-i18n="nav_calendar">Calendario</a></li>
       <li><a href="#dashboard" data-i18n="nav_dashboard">Dashboard</a></li>
       <li id="adminNavItem" style="display:none"><a href="#admin">Admin</a></li>
+      <li id="providerNavItem" style="display:none"><a href="#proveedores" data-i18n="nav_providers">Proveedores</a></li>
       <li>
-        <select id="langSelector" class="lang-select">
-          <option value="es">🇪🇸 ES</option>
-          <option value="en">🇬🇧 EN</option>
-          <option value="pt">🇧🇷 PT</option>
-        </select>
+        <div class="lang-selector" id="langSelector">
+          <button class="lang-trigger" id="langTrigger" title="Idioma / Language">
+            <i class="fa-solid fa-globe"></i>
+          </button>
+          <div class="lang-dropdown" id="langDropdown">
+            <button class="lang-cap active" data-lang="es"><span class="lang-flag">🇪🇸</span> Español</button>
+            <button class="lang-cap" data-lang="en"><span class="lang-flag">🇬🇧</span> English</button>
+            <button class="lang-cap" data-lang="fr"><span class="lang-flag">🇫🇷</span> Français</button>
+            <button class="lang-cap" data-lang="de"><span class="lang-flag">🇩🇪</span> Deutsch</button>
+            <button class="lang-cap" data-lang="pt"><span class="lang-flag">🇧🇷</span> Português</button>
+          </div>
+        </div>
       </li>
       <li>
         <button class="secondary-btn" id="darkModeBtn">
@@ -77,7 +87,6 @@
       <p data-i18n="hero_desc">Descubre eventos, turismo y actividades cerca de ti. Explora, inscríbete, califica y comparte tu experiencia.</p>
       <div class="hero-buttons">
         <a href="#eventos" class="primary-btn" data-i18n="hero_explore">Explorar eventos</a>
-        <a href="#mapa" class="secondary-btn" data-i18n="hero_map">Ver mapa</a>
       </div>
     </div>
   </section>
@@ -112,15 +121,13 @@
         <p data-i18n="f_timeline_desc">Visualiza eventos próximos, en curso y finalizados con una vista cronológica.</p>
         <span class="tag" data-i18n="new">Nuevo</span>
       </div>
+      <div class="featured-card">
+        <i class="fa-solid fa-handshake fa-2x" style="color:#22c55e"></i>
+        <h3 data-i18n="f_providers">Emparejamiento Inteligente</h3>
+        <p data-i18n="f_providers_desc">Conecta proveedores de servicios con organizadores de eventos. Coincidencias automáticas por rubro, ubicación y presupuesto.</p>
+        <span class="tag" data-i18n="new">Nuevo</span>
+      </div>
     </div>
-  </section>
-
-  <!-- ========================= -->
-  <!-- MAPA -->
-  <!-- ========================= -->
-  <section id="mapa">
-    <h2><i class="fa-solid fa-map"></i> <span data-i18n="map_title">Mapa de Eventos</span></h2>
-    <div id="map" style="height:450px;border-radius:20px;overflow:hidden;"></div>
   </section>
 
   <!-- ========================= -->
@@ -181,19 +188,6 @@
       <p id="socialLoginMsg" data-i18n="social_login"><a href="#" onclick="document.getElementById('loginBtn').click();return false;">Inicia sesión</a> para publicar en la comunidad.</p>
       <div id="socialPosts"></div>
     </div>
-  </section>
-
-  <!-- ========================= -->
-  <!-- CALENDARIO -->
-  <!-- ========================= -->
-  <section id="calendario">
-    <h2><i class="fa-solid fa-calendar-days"></i> <span data-i18n="calendar_title">Calendario Visual</span></h2>
-    <div class="calendar-nav">
-      <button class="secondary-btn" id="calPrev"><i class="fa-solid fa-chevron-left"></i></button>
-      <h3 id="calMonthYear"></h3>
-      <button class="secondary-btn" id="calNext"><i class="fa-solid fa-chevron-right"></i></button>
-    </div>
-    <div class="calendar-grid" id="calendarGrid"></div>
   </section>
 
   <!-- ========================= -->
@@ -292,6 +286,72 @@
     <div class="admin-panel" style="margin-top:30px;">
       <h3 data-i18n="user_management">Gestión de usuarios</h3>
       <div id="usersList"></div>
+    </div>
+  </section>
+
+  <!-- ========================= -->
+  <!-- PROVEEDORES -->
+  <!-- ========================= -->
+  <section id="proveedores" style="display:none;">
+    <h2><i class="fa-solid fa-handshake"></i> <span data-i18n="providers_title">Proveedores de Servicios</span></h2>
+    <div class="provider-tabs">
+      <button class="provider-tab active" data-ptab="dashboard"><i class="fa-solid fa-chart-simple"></i> <span data-i18n="prov_dashboard">Dashboard</span></button>
+      <button class="provider-tab" data-ptab="profile"><i class="fa-solid fa-id-card"></i> <span data-i18n="prov_profile">Mi Perfil</span></button>
+      <button class="provider-tab" data-ptab="matches"><i class="fa-solid fa-handshake"></i> <span data-i18n="prov_matches">Emparejamiento</span></button>
+    </div>
+    <div class="provider-tab-content active" id="ptab-dashboard">
+      <div class="provider-stats-grid" id="providerDashboard"><p style="text-align:center;opacity:0.6;">Cargando...</p></div>
+    </div>
+    <div class="provider-tab-content" id="ptab-profile">
+      <div class="provider-completion-bar">
+        <div class="completion-fill" id="completionFill" style="width:0%"></div>
+        <span id="completionText">0% completado</span>
+      </div>
+      <div id="incompleteMessage" style="display:none;background:rgba(239,68,68,0.1);border:1px solid rgba(239,68,68,0.2);border-radius:12px;padding:15px;margin-bottom:20px;color:#fca5a5;">
+        <i class="fa-solid fa-circle-exclamation"></i> Completa todos los campos obligatorios para acceder al emparejamiento.
+      </div>
+      <form id="providerForm" class="provider-form">
+        <div class="pf-row">
+          <input type="text" id="pfBusinessName" placeholder="Nombre del negocio *" required />
+          <input type="text" id="pfResponsibleName" placeholder="Nombre del responsable *" required />
+        </div>
+        <div class="pf-row">
+          <input type="email" id="pfEmail" placeholder="Correo electrónico *" required />
+          <input type="tel" id="pfPhone" placeholder="Teléfono de contacto *" required />
+        </div>
+        <div class="pf-row">
+          <select id="pfCategory" required>
+            <option value="">Seleccionar rubro *</option>
+            <option value="Cócteles">Cócteles</option>
+            <option value="Helados">Helados</option>
+            <option value="Catering">Catering</option>
+            <option value="Fotografía">Fotografía</option>
+            <option value="Música/DJ">Música/DJ</option>
+            <option value="Decoración">Decoración</option>
+            <option value="Sonido e iluminación">Sonido e iluminación</option>
+            <option value="Animación infantil">Animación infantil</option>
+          </select>
+          <input type="text" id="pfLocation" placeholder="Ubicación *" required />
+        </div>
+        <textarea id="pfDescription" placeholder="Descripción de servicios *" rows="3" required></textarea>
+        <div class="pf-row">
+          <input type="text" id="pfPriceRange" placeholder="Rango de precios (ej: $50k-$200k) *" required />
+          <input type="text" id="pfCapacity" placeholder="Capacidad de atención (ej: 100 personas) *" required />
+        </div>
+        <div class="pf-row">
+          <input type="text" id="pfAvailability" placeholder="Horarios disponibles (ej: Lun-Sáb 9-18) *" required />
+          <input type="url" id="pfSocialLinks" placeholder="Redes sociales o sitio web *" required />
+        </div>
+        <input type="url" id="pfLogoUrl" placeholder="URL de foto o logo *" required />
+        <button type="submit" class="primary-btn"><i class="fa-solid fa-save"></i> <span data-i18n="prov_save">Guardar perfil</span></button>
+      </form>
+    </div>
+    <div class="provider-tab-content" id="ptab-matches">
+      <div id="providerIncompleteMsg" style="display:none;text-align:center;padding:40px;opacity:0.6;">
+        <i class="fa-solid fa-lock fa-2x" style="margin-bottom:15px;display:block;"></i>
+        <p data-i18n="prov_complete_first">Completa tu perfil al 100% para ver eventos compatibles.</p>
+      </div>
+      <div id="providerMatchesContainer"></div>
     </div>
   </section>
 
@@ -443,7 +503,13 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="script.js"></script>
+  <script src="assets/js/app.js"></script>
+  <script src="assets/js/auth.js"></script>
+  <script src="assets/js/eventos.js"></script>
+  <script src="assets/js/comunidad.js"></script>
+  <script src="assets/js/dashboard.js"></script>
+  <script src="assets/js/providers.js"></script>
+  <script src="assets/js/admin.js"></script>
+  <script src="assets/js/init.js"></script>
 </body>
 </html>

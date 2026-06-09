@@ -11,10 +11,10 @@ const statsRoutes = require('./routes/stats');
 const aiRoutes = require('./routes/ai');
 const calendarRoutes = require('./routes/calendar');
 const notificationRoutes = require('./routes/notifications');
-const reviewRoutes = require('./routes/reviews');
 const socialRoutes = require('./routes/social');
 const sponsorRoutes = require('./routes/sponsors');
 const surveyRoutes = require('./routes/surveys');
+const providerRoutes = require('./routes/providers');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -33,6 +33,7 @@ app.use('/api/reviews', reviewRoutes);
 app.use('/api/social', socialRoutes);
 app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/surveys', surveyRoutes);
+app.use('/api/providers', providerRoutes);
 
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', version: '1.0.0' });

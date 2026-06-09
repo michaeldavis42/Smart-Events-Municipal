@@ -2,80 +2,77 @@ const API = 'http://localhost:3000/api';
 let token = localStorage.getItem('token') || null;
 let currentUser = JSON.parse(localStorage.getItem('user')) || null;
 let events = [];
-let map = null;
-let mapMarkers = [];
-let calDate = new Date();
 let currentLang = localStorage.getItem('lang') || 'es';
 
 const lang = {
   es: {
-    nav_home:'Inicio', nav_events:'Eventos', nav_social:'Comunidad', nav_calendar:'Calendario', nav_dashboard:'Dashboard', nav_login:'Ingresar',
+    nav_home:'Inicio', nav_events:'Eventos', nav_social:'Comunidad', nav_dashboard:'Dashboard', nav_providers:'Proveedores', nav_login:'Ingresar',
     hero_desc:'Descubre eventos, turismo y actividades cerca de ti. Explora, inscríbete, califica y comparte tu experiencia.',
-    hero_explore:'Explorar eventos', hero_map:'Ver mapa',
+    hero_explore:'Explorar eventos',
     features_title:'Tu guía de eventos', new:'Nuevo',
     f_nearby:'Eventos cerca de ti', f_nearby_desc:'Geolocalización para encontrar actividades culturales, deportivas y turísticas en tu zona.',
     f_reviews:'Reseñas como Letterboxd', f_reviews_desc:'Califica eventos con estrellas, escribe reseñas y comparte tu experiencia.',
     f_feed:'Feed Social', f_feed_desc:'Publica fotos, comparte experiencias, da me gusta y comenta publicaciones.',
     f_timeline:'Línea de Tiempo', f_timeline_desc:'Visualiza eventos próximos, en curso y finalizados.',
-    map_title:'Mapa de Eventos',
     timeline_title:'Línea de Tiempo', tl_upcoming:'Próximos', tl_ongoing:'Hoy', tl_finished:'Finalizados',
     events_title:'Eventos Disponibles', all_categories:'Todas las categorías', all:'Todos', most_popular:'Más populares', least_popular:'Menos populares',
     nearby_me:'Cerca de mí', search_people:'Buscar personas',
     social_title:'Comunidad', publish:'Publicar', social_login:'Inicia sesión para publicar en la comunidad.',
-    calendar_title:'Calendario Visual',
     dashboard_title:'Dashboard', total_events:'Eventos totales', total_participants:'Participantes totales', popular_event:'Evento más popular', popular_category:'Categoría destacada',
     heatmap_title:'Mapa de Calor por Comuna', ai_title:'Análisis con IA', refresh:'Refrescar análisis',
     export_pdf:'Exportar PDF', test_notification:'Probar notificación',
     create_event:'Crear nuevo evento', add_sponsor:'Agregar patrocinador', user_management:'Gestión de usuarios',
     contact:'Contacto', social:'Redes Sociales', footer_desc:'Plataforma inteligente de gestión de eventos.',
     event_registration:'Inscripción Evento',
-    survey_title:'Encuesta Post Evento', survey_sat:'Satisfacción', survey_opinion:'Tu opinión', survey_suggest:'Sugerencias', survey_submit:'Enviar encuesta'
+    survey_title:'Encuesta Post Evento', survey_sat:'Satisfacción', survey_opinion:'Tu opinión', survey_suggest:'Sugerencias', survey_submit:'Enviar encuesta',
+    f_providers:'Emparejamiento Inteligente', f_providers_desc:'Conecta proveedores de servicios con organizadores de eventos.',
+    providers_title:'Proveedores de Servicios', prov_dashboard:'Dashboard', prov_profile:'Mi Perfil', prov_matches:'Emparejamiento', prov_save:'Guardar perfil', prov_complete_first:'Completa tu perfil al 100% para ver eventos compatibles.'
   },
   en: {
-    nav_home:'Home', nav_events:'Events', nav_social:'Community', nav_calendar:'Calendar', nav_dashboard:'Dashboard', nav_login:'Login',
+    nav_home:'Home', nav_events:'Events', nav_social:'Community', nav_dashboard:'Dashboard', nav_providers:'Providers', nav_login:'Login',
     hero_desc:'Discover events, tourism and activities near you. Explore, register, rate and share your experience.',
-    hero_explore:'Explore events', hero_map:'View map',
+    hero_explore:'Explore events',
     features_title:'Your event guide', new:'New',
     f_nearby:'Events near you', f_nearby_desc:'Geolocation to find cultural, sports and tourism activities in your area.',
     f_reviews:'Letterboxd-style Reviews', f_reviews_desc:'Rate events with stars, write reviews and share with the community.',
     f_feed:'Social Feed', f_feed_desc:'Post photos, share experiences, like and comment on community posts.',
     f_timeline:'Timeline', f_timeline_desc:'View upcoming, ongoing and past events in a chronological view.',
-    map_title:'Event Map',
     timeline_title:'Timeline', tl_upcoming:'Upcoming', tl_ongoing:'Today', tl_finished:'Past',
     events_title:'Available Events', all_categories:'All categories', all:'All', most_popular:'Most popular', least_popular:'Least popular',
     nearby_me:'Near me', search_people:'Search people',
     social_title:'Community', publish:'Publish', social_login:'Log in to post in the community.',
-    calendar_title:'Visual Calendar',
     dashboard_title:'Dashboard', total_events:'Total events', total_participants:'Total participants', popular_event:'Most popular event', popular_category:'Top category',
     heatmap_title:'Heatmap by District', ai_title:'AI Analysis', refresh:'Refresh analysis',
     export_pdf:'Export PDF', test_notification:'Test notification',
     create_event:'Create event', add_sponsor:'Add sponsor', user_management:'User management',
     contact:'Contact', social:'Social Media', footer_desc:'Smart event management platform.',
     event_registration:'Event Registration',
-    survey_title:'Post-Event Survey', survey_sat:'Satisfaction', survey_opinion:'Your opinion', survey_suggest:'Suggestions', survey_submit:'Submit survey'
+    survey_title:'Post-Event Survey', survey_sat:'Satisfaction', survey_opinion:'Your opinion', survey_suggest:'Suggestions', survey_submit:'Submit survey',
+    f_providers:'Smart Matching', f_providers_desc:'Connect service providers with event organizers.',
+    providers_title:'Service Providers', prov_dashboard:'Dashboard', prov_profile:'My Profile', prov_matches:'Matching', prov_save:'Save profile', prov_complete_first:'Complete your profile at 100% to see compatible events.'
   },
   pt: {
-    nav_home:'Início', nav_events:'Eventos', nav_social:'Comunidade', nav_calendar:'Calendário', nav_dashboard:'Painel', nav_login:'Entrar',
+    nav_home:'Início', nav_events:'Eventos', nav_social:'Comunidade', nav_dashboard:'Painel', nav_providers:'Fornecedores', nav_login:'Entrar',
     hero_desc:'Descubra eventos, turismo e atividades perto de você. Explore, inscreva-se, avalie e compartilhe sua experiência.',
-    hero_explore:'Explorar eventos', hero_map:'Ver mapa',
+    hero_explore:'Explorar eventos',
     features_title:'Seu guia de eventos', new:'Novo',
     f_nearby:'Eventos perto de você', f_nearby_desc:'Geolocalização para encontrar atividades culturais, esportivas e turísticas na sua área.',
     f_reviews:'Avaliações estilo Letterboxd', f_reviews_desc:'Avalie eventos com estrelas, escreva resenhas e compartilhe com a comunidade.',
     f_feed:'Feed Social', f_feed_desc:'Publique fotos, compartilhe experiências, curta e comente publicações.',
     f_timeline:'Linha do Tempo', f_timeline_desc:'Veja eventos próximos, em andamento e finalizados.',
-    map_title:'Mapa de Eventos',
     timeline_title:'Linha do Tempo', tl_upcoming:'Próximos', tl_ongoing:'Hoje', tl_finished:'Finalizados',
     events_title:'Eventos Disponíveis', all_categories:'Todas as categorias', all:'Todos', most_popular:'Mais populares', least_popular:'Menos populares',
     nearby_me:'Perto de mim', search_people:'Buscar pessoas',
     social_title:'Comunidade', publish:'Publicar', social_login:'Faça login para publicar na comunidade.',
-    calendar_title:'Calendário Visual',
     dashboard_title:'Painel', total_events:'Total de eventos', total_participants:'Total de participantes', popular_event:'Evento mais popular', popular_category:'Categoria destaque',
     heatmap_title:'Mapa de Calor por Bairro', ai_title:'Análise com IA', refresh:'Atualizar análise',
     export_pdf:'Exportar PDF', test_notification:'Testar notificação',
     create_event:'Criar evento', add_sponsor:'Adicionar patrocinador', user_management:'Gerenciar usuários',
     contact:'Contato', social:'Redes Sociais', footer_desc:'Plataforma inteligente de gestão de eventos.',
     event_registration:'Inscrição no Evento',
-    survey_title:'Pesquisa Pós-Evento', survey_sat:'Satisfação', survey_opinion:'Sua opinião', survey_suggest:'Sugestões', survey_submit:'Enviar pesquisa'
+    survey_title:'Pesquisa Pós-Evento', survey_sat:'Satisfação', survey_opinion:'Sua opinião', survey_suggest:'Sugestões', survey_submit:'Enviar pesquisa',
+    f_providers:'Emparelhamento Inteligente', f_providers_desc:'Conecte fornecedores de serviços com organizadores de eventos.',
+    providers_title:'Fornecedores de Serviços', prov_dashboard:'Painel', prov_profile:'Meu Perfil', prov_matches:'Emparelhamento', prov_save:'Salvar perfil', prov_complete_first:'Complete seu perfil em 100% para ver eventos compatíveis.'
   }
 };
 
@@ -136,6 +133,8 @@ const userNavItem = document.getElementById('userNavItem');
 const userNameDisplay = document.getElementById('userNameDisplay');
 const adminSection = document.getElementById('admin');
 const adminNavItem = document.getElementById('adminNavItem');
+const providerSection = document.getElementById('proveedores');
+const providerNavItem = document.getElementById('providerNavItem');
 const darkModeBtn = document.getElementById('darkModeBtn');
 const nearbyBtn = document.getElementById('nearbyBtn');
 const nearbyWidget = document.getElementById('nearbyWidget');
@@ -192,6 +191,7 @@ function updateAuthUI() {
     userNameDisplay.textContent = currentUser.name;
     document.getElementById('socialPublishBox').style.display = 'block';
     document.getElementById('socialLoginMsg').style.display = 'none';
+    providerNavItem.style.display = 'block';
     if (currentUser.role === 'admin' || currentUser.role === 'organizer') {
       adminNavItem.style.display = 'block';
       adminSection.style.display = 'block';
@@ -202,6 +202,8 @@ function updateAuthUI() {
     userNavItem.style.display = 'none';
     adminNavItem.style.display = 'none';
     adminSection.style.display = 'none';
+    providerNavItem.style.display = 'none';
+    providerSection.style.display = 'none';
     document.getElementById('socialPublishBox').style.display = 'none';
     document.getElementById('socialLoginMsg').style.display = 'block';
   }
@@ -224,6 +226,29 @@ closeSearchPeople.addEventListener('click', () => searchPeopleModal.style.displa
 closeMyReviews.addEventListener('click', () => myReviewsModal.style.display = 'none');
 closeSurvey.addEventListener('click', () => surveyModal.style.display = 'none');
 closeComments.addEventListener('click', () => commentsModal.style.display = 'none');
+
+providerNavItem.addEventListener('click', (e) => {
+  e.preventDefault();
+  providerSection.style.display = 'block';
+  providerSection.scrollIntoView({ behavior: 'smooth' });
+  loadProviderDashboard();
+});
+
+document.querySelectorAll('.provider-tab').forEach(t => t.addEventListener('click', () => {
+  document.querySelectorAll('.provider-tab').forEach(x => x.classList.remove('active'));
+  document.querySelectorAll('.provider-tab-content').forEach(x => x.classList.remove('active'));
+  t.classList.add('active');
+  const tab = document.getElementById(`ptab-${t.dataset.ptab}`);
+  if (tab) tab.classList.add('active');
+  if (t.dataset.ptab === 'dashboard') loadProviderDashboard();
+  if (t.dataset.ptab === 'profile') loadProviderProfile();
+  if (t.dataset.ptab === 'matches') loadProviderMatches();
+}));
+
+document.getElementById('providerForm').addEventListener('submit', async (e) => {
+  e.preventDefault();
+  await saveProviderProfile();
+});
 
 document.getElementById('showRegisterLink').addEventListener('click', (e) => {
   e.preventDefault();
@@ -387,9 +412,7 @@ async function loadEvents() {
     events = await api.get(`/events?${params.toString()}`);
     renderEvents();
     updateDashboard();
-    updateMap();
     renderTimeline();
-    renderCalendar();
     checkNearbyWidget();
   } catch { events = []; renderEvents(); }
 }
@@ -656,36 +679,6 @@ function renderTimelineList(items) {
 }
 
 // =========================
-// CALENDAR
-// =========================
-function renderCalendar() {
-  const y = calDate.getFullYear(), m = calDate.getMonth();
-  document.getElementById('calMonthYear').textContent = new Date(y,m).toLocaleDateString('es-CL', {month:'long',year:'numeric'});
-  const first = new Date(y,m,1).getDay(), daysInMonth = new Date(y,m+1,0).getDate();
-  const monthEvents = events.filter(e => { const d = new Date(e.date); return d.getMonth() === m && d.getFullYear() === y; });
-  const today = new Date();
-  let html = '<div class="cal-header">' + ['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(d => `<div>${d}</div>`).join('') + '</div>';
-  for (let i = 0; i < first; i++) html += '<div></div>';
-  for (let d = 1; d <= daysInMonth; d++) {
-    const dateStr = `${y}-${String(m+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
-    const dayEvents = monthEvents.filter(e => e.date === dateStr);
-    const isToday = y === today.getFullYear() && m === today.getMonth() && d === today.getDate();
-    const dots = dayEvents.map(e => {
-      const cat = (e.category || '').toLowerCase().replace('í','i').replace('ó','o');
-      return `<span class="event-dot ${cat}" title="${e.name}"></span>`;
-    }).join('');
-    html += `<div class="cal-day ${dayEvents.length ? 'has-event' : ''} ${isToday ? 'today' : ''}" onclick="${dayEvents.length ? `showEventDetail(${dayEvents[0].id})` : ''}">
-      <span>${d}</span>
-      ${dayEvents.length ? `<div class="event-dots">${dots}</div><small>${dayEvents.length}</small>` : ''}
-    </div>`;
-  }
-  document.getElementById('calendarGrid').innerHTML = html;
-}
-
-document.getElementById('calPrev').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() - 1); renderCalendar(); });
-document.getElementById('calNext').addEventListener('click', () => { calDate.setMonth(calDate.getMonth() + 1); renderCalendar(); });
-
-// =========================
 // DASHBOARD
 // =========================
 async function updateDashboard() {
@@ -747,15 +740,6 @@ async function syncToCalendar(id) {
   try { const e = await api.get(`/events/${id}`); const ed = new Date(e.date+'T12:00:00'); ed.setHours(ed.getHours()+2); const d = await api.post('/calendar/sync', { summary: e.name, description: e.description||'', location: e.location, startDate: e.date, endDate: ed.toISOString().split('T')[0] }); if (d.eventUrl) window.open(d.eventUrl, '_blank'); else if (d.googleCalendarLink) window.open(d.googleCalendarLink, '_blank'); } catch { alert('Error al sincronizar'); }
 }
 
-// Map
-function initMap() { map = L.map('map').setView([-33.4489,-70.6693], 12); L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { attribution: '&copy; OpenStreetMap', maxZoom: 18 }).addTo(map); }
-function updateMap() {
-  if (!map) return;
-  mapMarkers.forEach(m => map.removeLayer(m)); mapMarkers = [];
-  events.forEach(e => { if (e.lat && e.lng) { const m = L.marker([e.lat, e.lng]).addTo(map).bindPopup(`<b>${e.name}</b><br>${e.location}`); mapMarkers.push(m); } });
-  if (mapMarkers.length) map.fitBounds(L.featureGroup(mapMarkers).getBounds().pad(0.1));
-}
-
 // Notifications
 document.getElementById('sendTestNotificationBtn')?.addEventListener('click', async () => {
   if (!token) return alert('Debes iniciar sesión');
@@ -791,6 +775,139 @@ async function loadUsers() {
   try { if (!token) return; const u = await api.get('/auth/users'); document.getElementById('usersList').innerHTML = u.map(x => `<div class="user-row"><span>${x.name}</span><span>${x.email}</span><span class="tag">${x.role}</span></div>`).join(''); } catch {}
 }
 
+// =========================
+// PROVIDERS
+// =========================
+async function loadProviderDashboard() {
+  try {
+    const d = await api.get('/providers/dashboard');
+    if (!d.has_profile) {
+      document.getElementById('providerDashboard').innerHTML = `
+        <div style="grid-column:1/-1;text-align:center;padding:30px;background:#1e293b;border-radius:16px;">
+          <i class="fa-solid fa-handshake fa-2x" style="color:#38bdf8;margin-bottom:15px;display:block;"></i>
+          <p data-i18n="prov_complete_first">Completa tu perfil al 100% para ver eventos compatibles.</p>
+        </div>`;
+      return;
+    }
+    document.getElementById('providerDashboard').innerHTML = `
+      <div class="provider-stat-card"><i class="fa-solid fa-percent fa-2x" style="color:${d.completion === 100 ? '#22c55e' : '#f59e0b'}"></i><p>${d.completion}%</p><small>Perfil completado</small></div>
+      <div class="provider-stat-card"><i class="fa-solid fa-calendar fa-2x" style="color:#38bdf8"></i><p>${d.compatible}</p><small>Eventos compatibles</small></div>
+      <div class="provider-stat-card"><i class="fa-solid fa-paper-plane fa-2x" style="color:#a855f7"></i><p>${d.requests_sent}</p><small>Solicitudes enviadas</small></div>
+      <div class="provider-stat-card"><i class="fa-solid fa-clock fa-2x" style="color:${d.pending > 0 ? '#f59e0b' : '#64748b'}"></i><p>${d.pending}</p><small>Pendientes</small></div>`;
+  } catch { document.getElementById('providerDashboard').innerHTML = '<p style="text-align:center;opacity:0.6;">Error al cargar dashboard.</p>'; }
+}
+
+async function loadProviderProfile() {
+  try {
+    const d = await api.get('/providers/profile');
+    const fill = document.getElementById('completionFill');
+    const text = document.getElementById('completionText');
+    fill.style.width = `${d.completion}%`;
+    text.textContent = `${d.completion}% completado`;
+    document.getElementById('incompleteMessage').style.display = d.completion < 100 ? 'block' : 'none';
+    if (d.profile) {
+      const p = d.profile;
+      document.getElementById('pfBusinessName').value = p.business_name || '';
+      document.getElementById('pfResponsibleName').value = p.responsible_name || '';
+      document.getElementById('pfEmail').value = p.email || '';
+      document.getElementById('pfPhone').value = p.phone || '';
+      document.getElementById('pfCategory').value = p.category || '';
+      document.getElementById('pfDescription').value = p.description || '';
+      document.getElementById('pfLocation').value = p.location || '';
+      document.getElementById('pfPriceRange').value = p.price_range || '';
+      document.getElementById('pfCapacity').value = p.capacity || '';
+      document.getElementById('pfAvailability').value = p.availability || '';
+      document.getElementById('pfSocialLinks').value = p.social_links || '';
+      document.getElementById('pfLogoUrl').value = p.logo_url || '';
+    }
+  } catch { /* silent */ }
+}
+
+async function saveProviderProfile() {
+  const data = {
+    business_name: document.getElementById('pfBusinessName').value,
+    responsible_name: document.getElementById('pfResponsibleName').value,
+    email: document.getElementById('pfEmail').value,
+    phone: document.getElementById('pfPhone').value,
+    category: document.getElementById('pfCategory').value,
+    description: document.getElementById('pfDescription').value,
+    location: document.getElementById('pfLocation').value,
+    price_range: document.getElementById('pfPriceRange').value,
+    capacity: document.getElementById('pfCapacity').value,
+    availability: document.getElementById('pfAvailability').value,
+    social_links: document.getElementById('pfSocialLinks').value,
+    logo_url: document.getElementById('pfLogoUrl').value
+  };
+  try {
+    const d = await api.post('/providers/profile', data);
+    const fill = document.getElementById('completionFill');
+    const text = document.getElementById('completionText');
+    fill.style.width = `${d.completion}%`;
+    text.textContent = `${d.completion}% completado`;
+    document.getElementById('incompleteMessage').style.display = d.completion < 100 ? 'block' : 'none';
+    alert('Perfil guardado');
+  } catch (e) { alert(e.error || 'Error al guardar'); }
+}
+
+async function loadProviderMatches() {
+  try {
+    const d = await api.get('/providers/matches');
+    const fill = document.getElementById('completionFill');
+    const text = document.getElementById('completionText');
+    if (fill && text) { fill.style.width = `${d.completion}%`; text.textContent = `${d.completion}% completado`; }
+    const incompleteMsg = document.getElementById('providerIncompleteMsg');
+    const container = document.getElementById('providerMatchesContainer');
+    if (d.completion < 100) {
+      incompleteMsg.style.display = 'block';
+      container.innerHTML = '';
+      return;
+    }
+    incompleteMsg.style.display = 'none';
+    if (!d.matches || !d.matches.length) {
+      container.innerHTML = '<p style="text-align:center;padding:40px;opacity:0.6;">No hay eventos compatibles con tu rubro.</p>';
+      return;
+    }
+    container.innerHTML = d.matches.map(e => {
+      const img = e.image || 'https://images.unsplash.com/photo-1492684223066-81342ee5ff30?q=80&w=2070';
+      const scorePct = Math.round((e.match_score / 85) * 100);
+      return `<div class="match-card">
+        <div class="match-score"><span>${Math.min(scorePct, 100)}%</span><small>Coincidencia</small></div>
+        <div class="match-info">
+          <h4>${e.name}</h4>
+          <p><i class="fa-solid fa-calendar"></i> ${formatDate(e.date)}</p>
+          <p><i class="fa-solid fa-location-dot"></i> ${e.location} · ${e.participants} inscritos · ${e.slots} cupos</p>
+          <div class="match-actions">
+            <button class="btn-view" onclick="showEventDetail(${e.id})">Ver evento</button>
+            <button class="btn-contact" onclick="contactOrganizer(${e.id}, this)">Contactar</button>
+          </div>
+          <div id="orgInfo-${e.id}"></div>
+        </div>
+      </div>`;
+    }).join('');
+  } catch { document.getElementById('providerMatchesContainer').innerHTML = '<p style="text-align:center;padding:40px;opacity:0.6;">Error al cargar coincidencias.</p>'; }
+}
+
+async function contactOrganizer(eventId, btn) {
+  if (!token) return alert('Debes iniciar sesión');
+  btn.disabled = true; btn.textContent = 'Enviando...';
+  try {
+    const d = await api.post('/providers/contact', { event_id: eventId });
+    const org = await api.get(`/providers/organizer-info/${eventId}`);
+    document.getElementById(`orgInfo-${eventId}`).innerHTML = `
+      <div class="organizer-info-box">
+        <p><i class="fa-solid fa-user"></i> <strong>${org.event.organizer_name}</strong></p>
+        <p><i class="fa-solid fa-envelope"></i> ${org.event.organizer_email}</p>
+        <p><i class="fa-solid fa-phone"></i> ${org.event.organizer_phone || 'No disponible'}</p>
+        <p><i class="fa-solid fa-calendar-check"></i> ${org.event.name} — ${formatDate(org.event.date)}</p>
+      </div>`;
+    btn.textContent = 'Contactado ✓';
+  } catch (e) {
+    btn.disabled = false;
+    btn.textContent = 'Contactar';
+    alert(e.error || 'Error al contactar');
+  }
+}
+
 // Filters
 searchInput.addEventListener('input', loadEvents);
 categoryFilter.addEventListener('change', loadEvents);
@@ -801,7 +918,6 @@ popularityFilter.addEventListener('change', () => renderEvents());
   document.getElementById('langSelector').value = currentLang;
   applyTranslation();
   updateAuthUI();
-  initMap();
   await loadEvents();
   await loadSocialFeed();
   await loadSocialEvents();
