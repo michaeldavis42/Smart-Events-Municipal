@@ -1,8 +1,13 @@
 const express = require('express');
 const cors = require('cors');
 require('dotenv').config();
+const swaggerUi = require('swagger-ui-express');
 
 const { initDB } = require('./config/db');
+const swaggerSpec = require('./config/swagger');
+const { success } = require('./utils/response');
+const { errorHandler } = require('./middleware/errorHandler');
+
 const authRoutes = require('./routes/auth');
 const eventRoutes = require('./routes/events');
 const reviewRoutes = require('./routes/reviews');
@@ -22,6 +27,10 @@ const PORT = process.env.PORT || 3000;
 app.use(cors());
 app.use(express.json());
 
+// Swagger documentation UI
+app.use('/api-docs', swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+
+// API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/events', eventRoutes);
 app.use('/api/registrations', registrationRoutes);
@@ -35,12 +44,23 @@ app.use('/api/sponsors', sponsorRoutes);
 app.use('/api/surveys', surveyRoutes);
 app.use('/api/providers', providerRoutes);
 
+// Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', version: '1.0.0' });
+  success(res, { status: 'ok', version: '1.0.0', uptime: process.uptime() });
 });
+
+// Swagger JSON endpoint
+app.get('/api-docs.json', (req, res) => {
+  res.setHeader('Content-Type', 'application/json');
+  res.send(swaggerSpec);
+});
+
+// Global error handler (must be last)
+app.use(errorHandler);
 
 initDB().then(() => {
   app.listen(PORT, () => {
     console.log(`SmartEvents API running on http://localhost:${PORT}`);
+    console.log(`Swagger docs: http://localhost:${PORT}/api-docs`);
   });
 });
