@@ -94,42 +94,72 @@ export default function Modals({
     );
   };
 
-  const handleLoginSubmit = (e: React.FormEvent) => {
+  const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!logEmail.includes('@')) {
       alert('Por favor ingresa un correo electrónico válido');
       return;
     }
-    const mockUser: User = {
-      id: Math.round(Math.random() * 892) + 200,
-      name: logEmail.split('@')[0].toUpperCase(),
-      email: logEmail,
-      role: 'user',
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200',
-      bio: 'Ciudadano comprometido con el desarrollo local de mi comuna.',
-      created_at: new Date().toISOString()
-    };
-    setCurrentUser(mockUser);
-    alert('¡Bienvenido! Sesión de Ciudadano local iniciada con éxito.');
-    onClose();
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: logEmail, password: logPw }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Error al iniciar sesión');
+        return;
+      }
+      const user: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200',
+        bio: 'Ciudadano comprometido con el desarrollo local de mi comuna.',
+        created_at: new Date().toISOString()
+      };
+      localStorage.setItem('token', data.token);
+      setCurrentUser(user);
+      alert('¡Bienvenido! Sesión de Ciudadano local iniciada con éxito.');
+      onClose();
+    } catch (err) {
+      alert('Error de conexión con el servidor. ¿El backend está corriendo?');
+    }
   };
 
-  const handleRegisterSubmit = (e: React.FormEvent) => {
+  const handleRegisterSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!regName.trim() || !regEmail.includes('@')) return;
 
-    const mockUser: User = {
-      id: Math.round(Math.random() * 892) + 200,
-      name: regName,
-      email: regEmail,
-      role: regRole,
-      avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200',
-      bio: 'Registrado recientemente en la plataforma SmartEvents.',
-      created_at: new Date().toISOString()
-    };
-    setCurrentUser(mockUser);
-    alert('Felicidades! Su cuenta de ' + (regRole === 'organizer' ? 'Organizador de eventos' : 'Ciudadano') + ' ha sido creada.');
-    onClose();
+    try {
+      const res = await fetch('/api/auth/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: regName, email: regEmail, password: regPw, role: regRole }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        alert(data.error || 'Error al registrarse');
+        return;
+      }
+      const user: User = {
+        id: data.user.id,
+        name: data.user.name,
+        email: data.user.email,
+        role: data.user.role,
+        avatar_url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200',
+        bio: 'Registrado recientemente en la plataforma SmartEvents.',
+        created_at: new Date().toISOString()
+      };
+      localStorage.setItem('token', data.token);
+      setCurrentUser(user);
+      alert('Felicidades! Su cuenta de ' + (regRole === 'organizer' ? 'Organizador de eventos' : 'Ciudadano') + ' ha sido creada.');
+      onClose();
+    } catch (err) {
+      alert('Error de conexión con el servidor. ¿El backend está corriendo?');
+    }
   };
 
   const handlePostReview = () => {

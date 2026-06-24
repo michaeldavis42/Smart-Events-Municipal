@@ -273,4 +273,16 @@ router.get('/users', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
+// Public list of citizens (no auth required — name, id only for directory)
+router.get('/citizens', async (req, res) => {
+  try {
+    const [rows] = await pool.query(
+      'SELECT u.id, u.name, u.email, r.name AS role, u.created_at FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.created_at DESC'
+    );
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
 module.exports = router;

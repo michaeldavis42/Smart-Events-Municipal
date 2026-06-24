@@ -132,16 +132,61 @@ export default function App() {
     return stored;
   }
 
-  // Find all users from reviews/posts database as simulated citizenry directory
-  const getAllCitizens = (): User[] => {
-    const defaultCitizens: User[] = [
+  // Citizen directory state (fetched from backend + local fallback)
+  const [citizens, setCitizens] = useState<User[]>(() => {
+    const stored = localStorage.getItem('citizens');
+    if (stored) return JSON.parse(stored);
+    return [
       { id: 101, name: "Camila Jara", email: "camila.jara@gmail.com", role: "user", bio: "Gusto por las artes visuales y los talleres literarios al aire libre.", avatar_url: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?q=80&w=200", created_at: "2026-06-15" },
       { id: 102, name: "Sebastián Reyes", email: "seba.reyes@duocuc.cl", role: "user", bio: "Estudiante de turismo aventura y apasionado del trail running municipal.", created_at: "2026-06-10" },
       { id: 103, name: "María José Allende", email: "cote.allende@nunoa.cl", role: "user", bio: "Vecina activa de Ñuñoa. Madre de dos pequeños inventores.", created_at: "2026-06-12" },
       { id: 154, name: "Vecino Destacado", email: "carlos.m@municipalidad.cl", role: "admin", bio: "Ayudando en la logística y reportes analíticos de nuestra comuna.", created_at: "2026-06-18" }
     ];
-    return defaultCitizens;
-  };
+  });
+
+  // Fetch citizens from backend on mount
+  useEffect(() => {
+    fetch('/api/auth/citizens')
+      .then(res => res.json())
+      .then(data => {
+        if (Array.isArray(data) && data.length > 0) {
+          const mapped = data.map((u: any) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            bio: u.bio || '',
+            avatar_url: u.avatar_url || '',
+            created_at: u.created_at || new Date().toISOString()
+          }));
+          setCitizens(mapped);
+          localStorage.setItem('citizens', JSON.stringify(mapped));
+        }
+      })
+      .catch(() => { /* backend not available, use fallback */ });
+  }, []);
+
+  // Re-fetch when user registers/logs in
+  useEffect(() => {
+    if (currentUser) {
+      fetch('/api/auth/citizens')
+        .then(res => res.json())
+        .then(data => {
+          if (Array.isArray(data) && data.length > 0) {
+            const mapped = data.map((u: any) => ({
+              id: u.id, name: u.name, email: u.email, role: u.role,
+              bio: u.bio || '', avatar_url: u.avatar_url || '',
+              created_at: u.created_at || new Date().toISOString()
+            }));
+            setCitizens(mapped);
+            localStorage.setItem('citizens', JSON.stringify(mapped));
+          }
+        })
+        .catch(() => {});
+    }
+  }, [currentUser]);
+
+  const getAllCitizens = (): User[] => citizens;
 
   // Modals operations
   const handleOpenEventDetail = (id: number) => {
