@@ -1,7 +1,11 @@
 const jwt = require('jsonwebtoken');
 require('dotenv').config();
 
-const JWT_SECRET = process.env.JWT_SECRET || 'smartevents_secret_key_2026';
+if (!process.env.JWT_SECRET) {
+  console.error('FATAL: JWT_SECRET no está definido en .env. El backend no puede iniciar de forma segura.');
+  process.exit(1);
+}
+const JWT_SECRET = process.env.JWT_SECRET;
 
 const authenticate = (req, res, next) => {
   const header = req.headers.authorization;

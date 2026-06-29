@@ -18,7 +18,7 @@ router.post('/register', async (req, res) => {
 
     let roleId = 3;
     if (role === 'organizer') roleId = 2;
-    if (role === 'admin') roleId = 1;
+    if (role === 'admin') return res.status(403).json({ error: 'No puedes registrarte como administrador' });
 
     const [result] = await pool.query(
       'INSERT INTO users (name, email, password, role_id) VALUES (?, ?, ?, ?)',

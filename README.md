@@ -4,10 +4,11 @@ Plataforma inteligente de gestión de eventos municipales con emparejamiento de 
 
 ## Stack
 
-- **Frontend:** HTML + CSS + JS vanilla (5 CSS modulares, 9 JS modulares)
+- **Frontend:** React 19 + TypeScript + Vite + Tailwind CSS 4
 - **Backend:** Node.js + Express + MySQL
 - **Auth:** JWT + bcrypt (con soporte Google OAuth)
 - **Notificaciones:** Web Push API + Service Worker
+- **Documentación API:** Swagger UI (`/api-docs`)
 - **PWA:** Manifest + Service Worker para instalación
 
 ## Requisitos
@@ -19,7 +20,7 @@ Plataforma inteligente de gestión de eventos municipales con emparejamiento de 
 ## Setup rápido
 
 ```bash
-# 1. Clonar e instalar dependencias
+# 1. Clonar e instalar dependencias del backend
 cd backend
 npm install
 
@@ -30,12 +31,12 @@ cp .env.example .env
 # 3. Iniciar backend (crea BD y tablas automáticamente)
 npm run dev
 
-# 4. En otra terminal, abrir frontend
-# Opcion A: Abrir index.html directo
-start index.html
+# 4. En otra terminal, instalar e iniciar frontend
+cd ..
+npm install
+npm run dev
 
-# Opcion B: Con Live Server (VS Code)
-# Click derecho en index.html > "Open with Live Server"
+# 5. Abrir http://localhost:3000
 ```
 
 ## Variables de entorno (`.env`)
@@ -46,7 +47,7 @@ start index.html
 | `DB_USER` | Usuario MySQL (default: root) |
 | `DB_PASSWORD` | Contraseña MySQL |
 | `DB_NAME` | Nombre BD (default: smartevents) |
-| `JWT_SECRET` | Secreto para firmar tokens JWT |
+| `JWT_SECRET` | Secreto para firmar tokens JWT (obligatorio) |
 | `OPENAI_API_KEY` | API key de OpenAI (opcional, fallback local) |
 | `GOOGLE_CLIENT_ID` | Client ID de Google OAuth (opcional) |
 | `VAPID_PUBLIC_KEY` | Clave pública para Web Push |
@@ -56,48 +57,55 @@ start index.html
 
 ```
 /
-├── index.html              # Frontend SPA
-├── manifest.json            # PWA manifest
-├── sw.js                    # Service Worker
-├── assets/
-│   ├── css/                 # 5 archivos CSS modulares
-│   │   ├── base.css         # Reset, variables, tipografía
-│   │   ├── layout.css       # Nav, hero, secciones, footer
-│   │   ├── components.css   # Botones, modales, tarjetas, formularios
-│   │   ├── modules.css      # Dashboard, timeline, social, providers, admin
-│   │   └── dark-mode.css    # Tema oscuro
-│   ├── js/                  # 9 archivos JS modulares
-│   │   ├── lang.js          # Traducciones (ES/EN/FR/DE/PT)
-│   │   ├── app.js           # Globals, API, i18n, notificaciones, dark mode
-│   │   ├── auth.js          # Login, registro, perfil, buscar personas
-│   │   ├── eventos.js       # CRUD eventos, reseñas, encuestas, Nearby
-│   │   ├── comunidad.js     # Feed social, likes, comentarios
-│   │   ├── dashboard.js     # Estadísticas, chart, heatmap, IA, PDF, calendario
-│   │   ├── providers.js     # Dashboard proveedor, perfil, matches
-│   │   ├── admin.js         # Panel admin: eventos, sponsors, usuarios
-│   │   └── init.js          # Listeners, inicialización
-│   └── images/
+├── index.html              # Entry point Vite
+├── package.json            # Frontend dependencies
+├── vite.config.ts          # Vite config (proxy /api → backend:3001)
+├── tsconfig.json           # TypeScript config
+├── src/                    # Frontend React
+│   ├── main.tsx            # Punto de entrada React
+│   ├── App.tsx             # Componente principal
+│   ├── types.ts            # Interfaces TypeScript
+│   ├── data.ts             # Datos semilla
+│   ├── translations.ts     # Traducciones (ES/EN/PT/FR/DE)
+│   ├── index.css           # Estilos Tailwind
+│   └── components/         # 10 componentes
+│       ├── Navbar.tsx
+│       ├── Hero.tsx
+│       ├── Features.tsx
+│       ├── EventCatalog.tsx
+│       ├── SocialFeed.tsx
+│       ├── ProviderHub.tsx
+│       ├── Timeline.tsx
+│       ├── AnalyticsDashboard.tsx
+│       ├── AdminPanel.tsx
+│       └── Modals.tsx
 ├── backend/
-│   ├── server.js            # Entry point Express
-│   ├── config/db.js         # Pool MySQL + auto-init DB
-│   ├── middleware/auth.js   # JWT middleware
-│   └── routes/              # 16 archivos de rutas
-│       ├── auth.js          # Auth, perfil, Google OAuth
-│       ├── events.js        # CRUD eventos, filtros, búsqueda
-│       ├── registrations.js # Inscripciones
-│       ├── reviews.js       # Reseñas tipo Letterboxd
-│       ├── social.js        # Posts, likes, comentarios
-│       ├── sponsors.js      # Patrocinadores
-│       ├── surveys.js       # Encuestas post-evento
-│       ├── providers.js     # Proveedores, matches, contacto
-│       ├── stats.js         # Estadísticas del dashboard
-│       ├── ai.js            # Análisis con IA (OpenAI + fallback)
-│       ├── calendar.js      # Sincronización Google Calendar
-│       └── notifications.js # Web Push notifications
-├── database/schema.sql      # Schema de referencia
-├── setup.ps1                # Script de setup para Windows
-├── styles.css               # Backup del CSS monolítico anterior
-└── script.js                # Backup del JS monolítico anterior
+│   ├── server.js           # Entry point Express (puerto 3001)
+│   ├── .env                # Variables de entorno
+│   ├── config/
+│   │   ├── db.js           # Pool MySQL + auto-init DB
+│   │   └── swagger.js      # Configuración Swagger/OpenAPI
+│   ├── middleware/
+│   │   ├── auth.js         # JWT middleware
+│   │   └── errorHandler.js # Manejador global de errores
+│   ├── utils/
+│   │   └── response.js     # Helper de respuestas estandarizadas
+│   └── routes/             # 12 archivos de rutas
+│       ├── auth.js         # Auth, perfil, Google OAuth
+│       ├── events.js       # CRUD eventos, filtros, búsqueda
+│       ├── registrations.js
+│       ├── reviews.js
+│       ├── social.js
+│       ├── sponsors.js
+│       ├── surveys.js
+│       ├── providers.js
+│       ├── stats.js
+│       ├── ai.js
+│       ├── calendar.js
+│       └── notifications.js
+├── assets/                 # (Versión vanilla anterior, ya no usada)
+├── database/schema.sql
+└── setup.ps1
 ```
 
 ## Endpoints principales
@@ -105,28 +113,26 @@ start index.html
 | Método | Ruta | Descripción |
 |---|---|---|
 | POST | `/api/auth/login` | Iniciar sesión |
-| POST | `/api/auth/register` | Registrar usuario |
+| POST | `/api/auth/register` | Registrar usuario (no admin) |
 | POST | `/api/auth/google` | Login con Google |
+| GET | `/api/auth/citizens` | Listar ciudadanos (público) |
 | GET | `/api/events` | Listar eventos (filtros) |
 | GET | `/api/events/nearby` | Eventos cercanos (Haversine) |
 | GET | `/api/stats` | Estadísticas del dashboard |
 | GET | `/api/ai/analysis` | Análisis con IA |
-| POST | `/api/providers/profile` | Guardar perfil proveedor |
-| GET | `/api/providers/matches` | Emparejamiento inteligente |
+| GET | `/api-docs` | Documentación Swagger UI |
 
 ## Funcionalidades
 
-- **Eventos:** CRUD completo, filtros por categoría y popularidad, búsqueda, geolocalización cercana (10 km)
-- **Reseñas:** Sistema tipo Letterboxd (1-5 estrellas), promedio por evento, modal de reseñas propias
-- **Feed Social:** Publicaciones con imágenes, likes toggle, comentarios en modal, asociación a eventos
-- **Dashboard:** Stats cards, Chart.js, heatmap por comuna, análisis IA, exportación PDF
-- **Timeline:** Pestañas Próximos/Hoy/Finalizados con tarjetas cronológicas
-- **Proveedores:** Perfil con 12 campos, barra de completitud, scoring por categoría, solicitud de contacto
-- **Encuestas:** Post-evento con satisfacción (1-5), opinión y sugerencias
+- **Eventos:** CRUD completo, filtros por categoría y popularidad, búsqueda, geolocalización cercana
+- **Reseñas:** Sistema tipo Letterboxd (1-5 estrellas), promedio por evento
+- **Feed Social:** Publicaciones con imágenes, likes toggle, comentarios
+- **Dashboard:** Stats cards, gráficos, análisis IA, exportación
+- **Proveedores:** Perfil, scoring, solicitud de contacto
+- **Encuestas:** Post-evento con satisfacción y sugerencias
 - **Notificaciones Push:** Web Push API con Service Worker
-- **Calendario:** Sincronización a Google Calendar con fallback direct link
-- **Admin:** Crear eventos, agregar sponsors, gestión de usuarios
-- **Perfil:** Editar info empresa, cambiar password/email, solicitar rol organizer, eliminar cuenta
+- **Calendario:** Sincronización a Google Calendar
+- **Admin:** Crear eventos, sponsors, gestión de usuarios
 - **Multi-idioma:** Español, English, Français, Deutsch, Português
-- **Dark Mode:** Toggle persistente en localStorage
-- **PWA:** Instalable via manifest.json + sw.js
+- **Dark Mode:** Toggle persistente
+- **PWA:** Instalable

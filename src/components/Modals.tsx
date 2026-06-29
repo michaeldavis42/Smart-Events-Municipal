@@ -48,8 +48,9 @@ export default function Modals({
   const [logPw, setLogPw] = useState('');
   
   const [regName, setRegName] = useState('');
-  const [regEmail, setRegEmail] = useState('');
-  const [regPw, setRegPw] = useState('');
+    const [regEmail, setRegEmail] = useState('');
+    const [regPw, setRegPw] = useState('');
+    const [forgotEmail, setForgotEmail] = useState('');
   const [regRole, setRegRole] = useState<'user' | 'organizer'>('user');
 
   // Review states inside Event details
@@ -367,14 +368,30 @@ export default function Modals({
                 </div>
                 <input
                   type="email"
+                  value={forgotEmail}
+                  onChange={(e) => setForgotEmail(e.target.value)}
                   placeholder="ej: tu.correo@dominio.cl"
                   className={`w-full px-4 py-2.5 rounded-xl border outline-none ${
-                    darkMode ? 'bg-slate-955 border-slate-800 text-slate-100' : 'bg-slate-50 border-slate-205 text-slate-850'
+                    darkMode ? 'bg-slate-950 border-slate-800 text-slate-100' : 'bg-slate-50 border-slate-205 text-slate-850'
                   }`}
                 />
                 <button
-                  onClick={() => {
-                    alert('Instrucciones enviadas! Revisa tu bandeja de entrada o buzón de spam.');
+                  onClick={async () => {
+                    if (!forgotEmail.includes('@')) {
+                      alert('Ingresa un correo válido');
+                      return;
+                    }
+                    try {
+                      const res = await fetch('/api/auth/forgot-password', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: forgotEmail }),
+                      });
+                      const data = await res.json();
+                      alert(data.message || 'Instrucciones enviadas. Revisa tu bandeja de entrada.');
+                    } catch {
+                      alert('Error de conexión con el servidor.');
+                    }
                     setAuthView('login');
                   }}
                   className="w-full inline-flex items-center justify-center py-2.5 rounded-xl text-xs sm:text-sm font-semibold text-white bg-gradient-to-r from-sky-500 to-indigo-600 shadow-sm cursor-pointer"
