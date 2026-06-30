@@ -12,6 +12,7 @@ import AnalyticsDashboard from './components/AnalyticsDashboard';
 import ProviderHub from './components/ProviderHub';
 import AdminPanel from './components/AdminPanel';
 import Modals from './components/Modals';
+import { ToastProvider, useToast } from './components/Toast';
 
 // Data, API and Models
 import { INITIAL_EVENTS, INITIAL_SPONSORS, INITIAL_REVIEWS, INITIAL_POSTS } from './data';
@@ -19,7 +20,8 @@ import { EventModel, SponsorModel, ReviewModel, SocialPostModel, SocialCommentMo
 import { transKeys, LangType } from './translations';
 import * as api from './api';
 
-export default function App() {
+function AppContent() {
+  const { showToast } = useToast();
   // Global States with local storage initialization
   const [currentLang, setLang] = useState<LangType>(() => {
     return (localStorage.getItem('lang') as LangType) || 'es';
@@ -211,7 +213,7 @@ export default function App() {
       setPublicUser(found);
       setActiveModal('public');
     } else {
-      alert("Usuario no hallado en el directorio local de la comuna.");
+      showToast("Usuario no hallado en el directorio local.", 'error');
     }
   };
 
@@ -252,7 +254,7 @@ export default function App() {
 
   const handlePostLike = async (postId: number) => {
     if (!currentUser) {
-      alert('Debes iniciar sesión para reaccionar a publicaciones.');
+      showToast('Debes iniciar sesión para reaccionar.', 'error');
       setActiveModal('login');
       return;
     }
@@ -314,16 +316,12 @@ export default function App() {
       if (ev.id === selectedEventId) return { ...ev, participants: ev.participants + 1 };
       return ev;
     }));
-    setTimeout(() => {
-      if (confirm('¡Inscripción ciudadana exitosa!\n¿Te gustaría responder la encuesta rápida de satisfacción?')) {
-        setActiveModal('survey');
-      }
-    }, 550);
+    setTimeout(() => setActiveModal('survey'), 600);
   };
 
   const handleTriggerPush = () => {
     if (!("Notification" in window)) {
-      alert("Su navegador no tiene permisos de notificación. Simulación: ¡Hay un concierto programado mañana!");
+      showToast("Notificaciones no soportadas en este navegador.", 'error');
       return;
     }
     Notification.requestPermission().then((permission) => {
@@ -333,7 +331,7 @@ export default function App() {
           icon: "https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?q=80&w=100"
         });
       } else {
-        alert("Simulación de notificación Push: ¡Alerta Vecino! Festival Lumínico se inaugurará mañana a las 20:00 hrs.");
+        showToast("Notificación simulada: Festival Lumínico mañana.", 'info');
       }
     });
   };
@@ -491,5 +489,13 @@ export default function App() {
       />
 
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <ToastProvider>
+      <AppContent />
+    </ToastProvider>
   );
 }

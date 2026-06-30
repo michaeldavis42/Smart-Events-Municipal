@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, Star, Calendar, MapPin, Award, Users, MessageSquare, ShieldAlert, CheckCircle, Search } from 'lucide-react';
 import { transKeys, LangType } from '../translations';
 import { User, EventModel, ReviewModel, SponsorModel, SocialCommentModel } from '../types';
+import { useToast } from './Toast';
 
 interface ModalsProps {
   currentLang: LangType;
@@ -79,6 +80,15 @@ export default function Modals({
   // Search Citizens
   const [searchCitizenTerm, setSearchCitizenTerm] = useState('');
 
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    if (!activeModal) return;
+    const handler = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
+    window.addEventListener('keydown', handler);
+    return () => window.removeEventListener('keydown', handler);
+  }, [activeModal, onClose]);
+
   const t = (key: keyof typeof transKeys['es']) => {
     return transKeys[currentLang]?.[key] || transKeys['es'][key] || key;
   };
@@ -98,7 +108,7 @@ export default function Modals({
   const handleLoginSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!logEmail.includes('@')) {
-      alert('Por favor ingresa un correo electrónico válido');
+      showToast('Ingresa un correo electrónico válido', 'error');
       return;
     }
     try {
@@ -109,7 +119,7 @@ export default function Modals({
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Error al iniciar sesión');
+        showToast(data.error || 'Error al iniciar sesión', 'error');
         return;
       }
       const user: User = {
@@ -123,10 +133,10 @@ export default function Modals({
       };
       localStorage.setItem('token', data.token);
       setCurrentUser(user);
-      alert('¡Bienvenido! Sesión de Ciudadano local iniciada con éxito.');
+      showToast('Sesión iniciada con éxito.', 'success');
       onClose();
-    } catch (err) {
-      alert('Error de conexión con el servidor. ¿El backend está corriendo?');
+    } catch {
+      showToast('Error de conexión con el servidor.', 'error');
     }
   };
 
@@ -142,7 +152,7 @@ export default function Modals({
       });
       const data = await res.json();
       if (!res.ok) {
-        alert(data.error || 'Error al registrarse');
+        showToast(data.error || 'Error al registrarse', 'error');
         return;
       }
       const user: User = {
@@ -156,21 +166,21 @@ export default function Modals({
       };
       localStorage.setItem('token', data.token);
       setCurrentUser(user);
-      alert('Felicidades! Su cuenta de ' + (regRole === 'organizer' ? 'Organizador de eventos' : 'Ciudadano') + ' ha sido creada.');
+      showToast('Cuenta de ' + (regRole === 'organizer' ? 'Organizador' : 'Ciudadano') + ' creada.', 'success');
       onClose();
     } catch (err) {
-      alert('Error de conexión con el servidor. ¿El backend está corriendo?');
+      showToast('Error de conexión con el servidor.', 'error');
     }
   };
 
   const handlePostReview = () => {
     if (!commentInput.trim()) {
-      alert('Por favor escribe tu reseña opinando sobre el evento.');
+      showToast('Escribe tu reseña antes de publicar.', 'error');
       return;
     }
     onAddReview(ratingInput, commentInput);
     setCommentInput('');
-    alert('¡Reseña guardada en la ficha de Evento con éxito!');
+    showToast('Reseña guardada con éxito.', 'success');
   };
 
   const handlePostCommentService = () => {
@@ -182,7 +192,7 @@ export default function Modals({
   const handleSaveProfileForm = (e: React.FormEvent) => {
     e.preventDefault();
     onSaveProfile(profCompany, profBio, profAvatar, profPhone, profWeb);
-    alert('Detalles de perfil comercial actualizados.');
+    showToast('Perfil actualizado.', 'success');
     onClose();
   };
 
@@ -193,7 +203,11 @@ export default function Modals({
   };
 
   return (
-    <div className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all animate-fade-in">
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label={activeModal === 'login' ? 'Inicio de sesión' : activeModal === 'search' ? 'Buscar personas' : activeModal === 'detail' ? 'Detalle del evento' : 'Ventana emergente'}
+      className="fixed inset-0 z-50 overflow-y-auto flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm transition-all animate-fade-in">
       <div className={`relative w-full max-w-lg rounded-2xl border shadow-2xl p-6 sm:p-8 overflow-hidden transition-all ${
         darkMode ? 'bg-slate-900 border-slate-800 text-slate-100' : 'bg-white border-slate-205 text-slate-800'
       }`}>
@@ -378,7 +392,7 @@ export default function Modals({
                 <button
                   onClick={async () => {
                     if (!forgotEmail.includes('@')) {
-                      alert('Ingresa un correo válido');
+                      showToast('Ingresa un correo válido', 'error');
                       return;
                     }
                     try {
@@ -388,9 +402,9 @@ export default function Modals({
                         body: JSON.stringify({ email: forgotEmail }),
                       });
                       const data = await res.json();
-                      alert(data.message || 'Instrucciones enviadas. Revisa tu bandeja de entrada.');
+                      showToast(data.message || 'Instrucciones enviadas.', 'success');
                     } catch {
-                      alert('Error de conexión con el servidor.');
+                      showToast('Error de conexión con el servidor.', 'error');
                     }
                     setAuthView('login');
                   }}
@@ -701,7 +715,7 @@ export default function Modals({
 
               <button
                 onClick={() => {
-                  alert('¡Muchísimas gracias por ayudarnos a auditar la calidad municipal!\nSu encuesta ha quedado registrada en las bases de datos de la alcaldía.');
+                  showToast('Encuesta registrada. ¡Gracias por tu feedback!', 'success');
                   onClose();
                   setSurveyOpinion('');
                   setSurveySuggest('');

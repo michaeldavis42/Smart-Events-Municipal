@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Globe, Moon, Sun, User, LogOut, Award, Star, Shield, Users } from 'lucide-react';
+import { Globe, Moon, Sun, User, LogOut, Award, Star, Shield, Users, Menu, X } from 'lucide-react';
 import { transKeys, LangType } from '../translations';
 import { User as UserType } from '../types';
 
@@ -33,6 +33,7 @@ export default function Navbar({
   setActiveSection
 }: NavbarProps) {
   const [langOpen, setLangOpen] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
   const t = (key: keyof typeof transKeys['es']) => {
     return transKeys[currentLang]?.[key] || transKeys['es'][key] || key;
   };
@@ -103,12 +104,21 @@ export default function Navbar({
             )}
           </div>
 
+          {/* Mobile hamburger */}
+          <button
+            onClick={() => setMobileOpen(!mobileOpen)}
+            className="md:hidden p-2 rounded-lg transition-colors"
+            aria-label="Menú de navegación"
+          >
+            {mobileOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </button>
+
           {/* Right Action buttons */}
           <div className="flex items-center space-x-3">
             {/* Find People Shortcut */}
             <button
               onClick={onOpenSearch}
-              title={t('search_people')}
+              aria-label={t('search_people')}
               className={`p-2 rounded-lg transition-colors ${
                 darkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100 text-slate-600 hover:text-slate-800'
               }`}
@@ -123,7 +133,7 @@ export default function Navbar({
                 className={`p-2 rounded-lg flex items-center transition-colors ${
                   darkMode ? 'hover:bg-slate-800 text-slate-400 hover:text-slate-200' : 'hover:bg-slate-100 text-slate-600'
                 }`}
-                title="Sincronizar Idioma"
+                aria-label="Cambiar idioma"
               >
                 <Globe className="h-5 w-5 mr-1" />
                 <span className="text-xs uppercase font-mono">{currentLang}</span>
@@ -169,6 +179,7 @@ export default function Navbar({
             {/* Dark Mode toggle */}
             <button
               onClick={() => setDarkMode(!darkMode)}
+              aria-label={darkMode ? 'Activar modo claro' : 'Activar modo oscuro'}
               className={`p-2 rounded-lg transition-colors ${
                 darkMode ? 'hover:bg-slate-800 text-yellow-400' : 'hover:bg-slate-100 text-slate-500'
               }`}
@@ -230,6 +241,46 @@ export default function Navbar({
           </div>
         </div>
       </div>
+
+        {/* Mobile menu */}
+        {mobileOpen && (
+          <div className={`md:hidden border-t transition-all duration-200 ${
+            darkMode ? 'border-slate-800 bg-slate-900/95' : 'border-slate-200 bg-white/95'
+          }`}>
+            <div className="px-4 py-3 space-y-1">
+              {menuItems.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => { handleScrollTo(item.id); setMobileOpen(false); }}
+                  className={`block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    activeSection === item.id
+                      ? 'bg-sky-500/10 text-sky-400 font-semibold'
+                      : 'hover:bg-slate-500/5 hover:text-sky-400'
+                  }`}
+                >
+                  {item.label}
+                </button>
+              ))}
+              {currentUser && (currentUser.role === 'admin' || currentUser.role === 'organizer') && (
+                <button
+                  onClick={() => { handleScrollTo('admin'); setMobileOpen(false); }}
+                  className="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium text-indigo-400 hover:bg-indigo-500/5"
+                >
+                  <Shield className="h-4 w-4 inline mr-1.5" />
+                  Admin
+                </button>
+              )}
+              <hr className={`my-2 ${darkMode ? 'border-slate-800' : 'border-slate-200'}`} />
+              <button
+                onClick={() => { onOpenSearch(); setMobileOpen(false); }}
+                className="block w-full text-left px-3 py-2.5 rounded-lg text-sm font-medium hover:bg-slate-500/5"
+              >
+                <Users className="h-4 w-4 inline mr-1.5" />
+                {t('search_people')}
+              </button>
+            </div>
+          </div>
+        )}
     </nav>
   );
 }

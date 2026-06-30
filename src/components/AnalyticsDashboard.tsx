@@ -68,7 +68,7 @@ export default function AnalyticsDashboard({
   };
 
   const handleExportSpreadsheet = () => {
-    alert('Generando planilla de balance consolidado...\nSe ha descargado el informe "registro_smartevents_2026.csv" de forma local con éxito.');
+    alert('Reporte generado: registro_smartevents_2026.csv');
   };
 
   return (

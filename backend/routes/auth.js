@@ -1,15 +1,34 @@
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const crypto = require('crypto');
+const rateLimit = require('express-rate-limit');
+const { body, validationResult } = require('express-validator');
 const { pool } = require('../config/db');
 const { generateToken, authenticate, authorize } = require('../middleware/auth');
 const router = express.Router();
 
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 20,
+  message: { error: 'Demasiados intentos. Intenta de nuevo en 15 minutos.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const validate = (req, res, next) => {
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) return res.status(400).json({ error: errors.array()[0].msg });
+  next();
+};
+
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', authLimiter, [
+  body('name').trim().notEmpty().withMessage('Nombre obligatorio'),
+  body('email').isEmail().withMessage('Email inválido'),
+  body('password').isLength({ min: 6 }).withMessage('Mínimo 6 caracteres'),
+], validate, async (req, res) => {
   try {
     const { name, email, password, role } = req.body;
-    if (!name || !email) return res.status(400).json({ error: 'Nombre y email obligatorios' });
     const [existing] = await pool.query('SELECT id FROM users WHERE email = ?', [email]);
     if (existing.length > 0) return res.status(400).json({ error: 'El email ya está registrado' });
 
@@ -35,10 +54,12 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', authLimiter, [
+  body('email').isEmail().withMessage('Email inválido'),
+  body('password').notEmpty().withMessage('Contraseña requerida'),
+], validate, async (req, res) => {
   try {
     const { email, password } = req.body;
-    if (!email || !password) return res.status(400).json({ error: 'Email y contraseña requeridos' });
     const [rows] = await pool.query(
       `SELECT u.*, r.name AS role_name FROM users u JOIN roles r ON u.role_id = r.id WHERE u.email = ?`,
       [email]
@@ -273,13 +294,17 @@ router.get('/users', authenticate, authorize('admin'), async (req, res) => {
   }
 });
 
-// Public list of citizens (no auth required — name, id only for directory)
+// Public list of citizens (no auth required — partial email only for privacy)
 router.get('/citizens', async (req, res) => {
   try {
     const [rows] = await pool.query(
       'SELECT u.id, u.name, u.email, r.name AS role, u.created_at FROM users u JOIN roles r ON u.role_id = r.id ORDER BY u.created_at DESC'
     );
-    res.json(rows);
+    const sanitized = rows.map(u => ({
+      ...u,
+      email: u.email ? u.email.replace(/(.{2}).*(@.*)/, '$1***$2') : null,
+    }));
+    res.json(sanitized);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

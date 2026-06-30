@@ -69,7 +69,7 @@ export default function AdminPanel({
     };
 
     onAddEvent(newEv);
-    alert('¡Evento creado con éxito!\nya es visible en la cartelera general, buscador y mapa de calor.');
+    alert('Evento creado con éxito.');
     
     // reset form
     setEventName('');
@@ -92,7 +92,7 @@ export default function AdminPanel({
     };
 
     onAddSponsor(newSpo);
-    alert('¡Patrocinador comercial asignado con éxito a la cartelera del evento!');
+    alert('Patrocinador asignado con éxito.');
     
     // reset form
     setSpoName('');
