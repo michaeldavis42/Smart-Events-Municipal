@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Award, Mail, Phone, Facebook, Instagram, Twitter, Sparkles, BellRing } from 'lucide-react';
+import { Award, Mail, Phone, Facebook, Instagram, Twitter } from 'lucide-react';
 
 // Components
 import Navbar from './components/Navbar';
@@ -13,10 +13,11 @@ import ProviderHub from './components/ProviderHub';
 import AdminPanel from './components/AdminPanel';
 import Modals from './components/Modals';
 
-// Seed data and Models
+// Data, API and Models
 import { INITIAL_EVENTS, INITIAL_SPONSORS, INITIAL_REVIEWS, INITIAL_POSTS } from './data';
 import { EventModel, SponsorModel, ReviewModel, SocialPostModel, SocialCommentModel, User } from './types';
 import { transKeys, LangType } from './translations';
+import * as api from './api';
 
 export default function App() {
   // Global States with local storage initialization
@@ -144,47 +145,28 @@ export default function App() {
     ];
   });
 
-  // Fetch citizens from backend on mount
+  // Fetch all data from backend on mount
   useEffect(() => {
-    fetch('/api/auth/citizens')
-      .then(res => res.json())
-      .then(data => {
-        if (Array.isArray(data) && data.length > 0) {
-          const mapped = data.map((u: any) => ({
-            id: u.id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            bio: u.bio || '',
-            avatar_url: u.avatar_url || '',
-            created_at: u.created_at || new Date().toISOString()
-          }));
-          setCitizens(mapped);
-          localStorage.setItem('citizens', JSON.stringify(mapped));
-        }
-      })
-      .catch(() => { /* backend not available, use fallback */ });
-  }, []);
+    api.auth.citizens().then(data => {
+      const mapped = data.map(u => ({
+        id: u.id, name: u.name, email: u.email, role: u.role,
+        bio: '', avatar_url: '',
+        created_at: u.created_at || new Date().toISOString()
+      }));
+      setCitizens(mapped);
+      localStorage.setItem('citizens', JSON.stringify(mapped));
+    }).catch(() => {});
 
-  // Re-fetch when user registers/logs in
-  useEffect(() => {
-    if (currentUser) {
-      fetch('/api/auth/citizens')
-        .then(res => res.json())
-        .then(data => {
-          if (Array.isArray(data) && data.length > 0) {
-            const mapped = data.map((u: any) => ({
-              id: u.id, name: u.name, email: u.email, role: u.role,
-              bio: u.bio || '', avatar_url: u.avatar_url || '',
-              created_at: u.created_at || new Date().toISOString()
-            }));
-            setCitizens(mapped);
-            localStorage.setItem('citizens', JSON.stringify(mapped));
-          }
-        })
-        .catch(() => {});
-    }
-  }, [currentUser]);
+    api.events.list().then(data => {
+      const mapped = data as unknown as EventModel[];
+      if (mapped.length > 0) { setEvents(mapped); localStorage.setItem('events', JSON.stringify(mapped)); }
+    }).catch(() => {});
+
+    api.social.list().then(data => {
+      const mapped = data as unknown as SocialPostModel[];
+      if (mapped.length > 0) { setPosts(mapped); localStorage.setItem('posts', JSON.stringify(mapped)); }
+    }).catch(() => {});
+  }, []);
 
   const getAllCitizens = (): User[] => citizens;
 
@@ -234,42 +216,49 @@ export default function App() {
   };
 
   // Add items callbacks
-  const handleAddReview = (rating: number, comment: string) => {
+  const handleAddReview = async (rating: number, comment: string) => {
     if (!currentUser || !selectedEventId) return;
-    const newRev: ReviewModel = {
-      id: reviews.length + 1,
-      event_id: selectedEventId,
-      user_id: currentUser.id,
-      user_name: currentUser.name,
-      rating,
-      comment,
-      created_at: new Date().toISOString()
-    };
-    setReviews([newRev, ...reviews]);
+    try {
+      await api.reviews.create(selectedEventId, rating, comment);
+      const newRev: ReviewModel = {
+        id: Date.now(),
+        event_id: selectedEventId,
+        user_id: currentUser.id,
+        user_name: currentUser.name,
+        rating,
+        comment,
+        created_at: new Date().toISOString()
+      };
+      setReviews([newRev, ...reviews]);
+    } catch { /* backend offline, keep local */ }
   };
 
-  const handleAddComment = (content: string) => {
+  const handleAddComment = async (content: string) => {
     if (!currentUser || !selectedPostId) return;
-    const newCmt: SocialCommentModel = {
-      id: comments.length + 1,
-      post_id: selectedPostId,
-      user_id: currentUser.id,
-      user_name: currentUser.name,
-      content,
-      created_at: new Date().toISOString()
-    };
-    setComments([...comments, newCmt]);
-    
-    // Update count in post state
-    setPosts(posts.map(p => p.id === selectedPostId ? { ...p, comment_count: p.comment_count + 1 } : p));
+    try {
+      await api.social.addComment(selectedPostId, content);
+      const newCmt: SocialCommentModel = {
+        id: Date.now(),
+        post_id: selectedPostId,
+        user_id: currentUser.id,
+        user_name: currentUser.name,
+        content,
+        created_at: new Date().toISOString()
+      };
+      setComments([...comments, newCmt]);
+      setPosts(posts.map(p => p.id === selectedPostId ? { ...p, comment_count: p.comment_count + 1 } : p));
+    } catch { /* backend offline, keep local */ }
   };
 
-  const handlePostLike = (postId: number) => {
+  const handlePostLike = async (postId: number) => {
     if (!currentUser) {
       alert('Debes iniciar sesión para reaccionar a publicaciones.');
       setActiveModal('login');
       return;
     }
+    try {
+      await api.social.toggleLike(postId);
+    } catch { /* backend offline */ }
     setPosts(posts.map(p => {
       if (p.id === postId) {
         const liked = p.liked_by.includes(currentUser.id);
@@ -286,52 +275,47 @@ export default function App() {
     }));
   };
 
-  const handleAddPost = (text: string, imageUrl?: string, eventId?: number) => {
+  const handleAddPost = async (text: string, imageUrl?: string, eventId?: number) => {
     if (!currentUser) return;
-    const eventNameFound = events.find(e => e.id === eventId)?.name;
-    const newPost: SocialPostModel = {
-      id: posts.length + 1,
-      user_id: currentUser.id,
-      user_name: currentUser.name,
-      content: text,
-      image: imageUrl,
-      event_id: eventId,
-      event_name: eventNameFound,
-      like_count: 0,
-      comment_count: 0,
-      liked_by: [],
-      created_at: new Date().toISOString()
-    };
-    setPosts([newPost, ...posts]);
-    alert('¡Actualización publicada con éxito en el feed vecinal!');
+    try {
+      const result = await api.social.create(text, imageUrl, eventId) as any;
+      const eventNameFound = events.find(e => e.id === eventId)?.name;
+      const newPost: SocialPostModel = {
+        id: result.id || Date.now(),
+        user_id: currentUser.id,
+        user_name: currentUser.name,
+        content: text,
+        image: imageUrl,
+        event_id: eventId,
+        event_name: eventNameFound,
+        like_count: 0,
+        comment_count: 0,
+        liked_by: [],
+        created_at: new Date().toISOString()
+      };
+      setPosts([newPost, ...posts]);
+    } catch { /* backend offline */ }
   };
 
-  const handleSaveProfile = (company: string, bio: string, avatar: string, phone: string, web: string) => {
+  const handleSaveProfile = async (company: string, bio: string, avatar: string, phone: string, web: string) => {
     if (!currentUser) return;
-    setCurrentUser({
-      ...currentUser,
-      company_name: company,
-      bio,
-      avatar_url: avatar,
-      phone,
-      website: web
-    });
+    try {
+      await api.auth.updateProfile({ company_name: company, bio, avatar_url: avatar, phone, website: web });
+    } catch { /* backend offline */ }
+    setCurrentUser({ ...currentUser, company_name: company, bio, avatar_url: avatar, phone, website: web });
   };
 
-  const handleEventEnrollment = (name: string, email: string) => {
+  const handleEventEnrollment = async (name: string, email: string) => {
     if (!selectedEventId) return;
-    
-    // Update events slots filled locally
+    try {
+      await api.registrations.create(selectedEventId, name, email);
+    } catch { /* backend offline */ }
     setEvents(events.map(ev => {
-      if (ev.id === selectedEventId) {
-        return { ...ev, participants: ev.participants + 1 };
-      }
+      if (ev.id === selectedEventId) return { ...ev, participants: ev.participants + 1 };
       return ev;
     }));
-
-    // Seed post-event survey selection option
     setTimeout(() => {
-      if (confirm('🎉 ¡Inscripción ciudadana exitosa!\n¿Te gustaría dedicar 30 segundos a responder la encuesta rápida de satisfacción para ayudarnos?')) {
+      if (confirm('¡Inscripción ciudadana exitosa!\n¿Te gustaría responder la encuesta rápida de satisfacción?')) {
         setActiveModal('survey');
       }
     }, 550);
